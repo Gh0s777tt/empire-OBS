@@ -58,11 +58,13 @@ static OBSServiceAutoRelease create_service(const GoLiveApi::Config &go_live_con
 	const auto &ingest_endpoints = go_live_config.ingest_endpoints;
 
 	for (auto &endpoint : ingest_endpoints) {
-		if (qstrnicmp("RTMP", endpoint.protocol.c_str(), 4))
+		if (qstrnicmp("RTMP", endpoint.protocol.c_str(), 4)) {
 			continue;
+		}
 
-		if (use_rtmps.has_value() && *use_rtmps != (qstricmp("RTMPS", endpoint.protocol.c_str()) == 0))
+		if (use_rtmps.has_value() && *use_rtmps != (qstricmp("RTMPS", endpoint.protocol.c_str()) == 0)) {
 			continue;
+		}
 
 		url = endpoint.url_template.c_str();
 		if (endpoint.authentication && !endpoint.authentication->empty()) {
@@ -96,8 +98,9 @@ static OBSServiceAutoRelease create_service(const GoLiveApi::Config &go_live_con
 	// not initialize str if cat'ing with a null url
 	if (!dstr_is_empty(str)) {
 		auto found = dstr_find(str, "/{stream_key}");
-		if (found)
+		if (found) {
 			dstr_remove(str, found - str->array, str->len - (found - str->array));
+		}
 	}
 
 	/* The stream key itself may contain query parameters, such as
@@ -110,8 +113,9 @@ static OBSServiceAutoRelease create_service(const GoLiveApi::Config &go_live_con
 	QUrl parsed_url{url};
 	QUrlQuery parsed_query{parsed_url};
 
-	for (const auto &[key, value] : user_key_query.queryItems())
+	for (const auto &[key, value] : user_key_query.queryItems()) {
 		parsed_query.addQueryItem(key, value);
+	}
 
 	if (!go_live_config.meta.config_id.empty()) {
 		parsed_query.addQueryItem("clientConfigId", QString::fromStdString(go_live_config.meta.config_id));
@@ -201,12 +205,14 @@ static void adjust_encoder_frame_rate_divisor(const obs_video_info &ovi, obs_enc
 	}
 	media_frames_per_second requested_fps = *encoder_config.framerate;
 
-	if (ovi.fps_num == requested_fps.numerator && ovi.fps_den == requested_fps.denominator)
+	if (ovi.fps_num == requested_fps.numerator && ovi.fps_den == requested_fps.denominator) {
 		return;
+	}
 
 	auto divisor = closest_divisor(ovi, requested_fps);
-	if (divisor <= 1)
+	if (divisor <= 1) {
 		return;
+	}
 
 	blog(LOG_INFO, "Setting frame rate divisor to %u for encoder %zu", divisor, encoder_index);
 	obs_encoder_set_frame_rate_divisor(video_encoder, divisor);
@@ -217,8 +223,9 @@ static bool encoder_available(const char *type)
 	const char *id = nullptr;
 
 	for (size_t idx = 0; obs_enum_encoder_types(idx, &id); idx++) {
-		if (strcmp(id, type) == 0)
+		if (strcmp(id, type) == 0) {
 			return true;
+		}
 	}
 
 	return false;
@@ -382,15 +389,17 @@ void MultitrackVideoOutput::PrepareStreaming(
 
 	std::string canvasNames;
 	for (const auto &canvas : canvases) {
-		if (!canvasNames.empty())
+		if (!canvasNames.empty()) {
 			canvasNames += ", ";
+		}
 
 		canvasNames += obs_canvas_get_name(canvas);
 	}
 
 	DStr vod_track_info_storage;
-	if (vod_track_mixer.has_value())
+	if (vod_track_mixer.has_value()) {
 		dstr_printf(vod_track_info_storage, "Yes (mixer: %zu)", vod_track_mixer.value());
+	}
 
 	blog(LOG_INFO,
 	     "Preparing enhanced broadcasting stream for:\n"
@@ -461,14 +470,16 @@ void MultitrackVideoOutput::PrepareStreaming(
 				      vod_track_mixer, canvases);
 	auto output = std::move(outputs.output);
 	auto recording_output = std::move(outputs.recording_output);
-	if (!output)
+	if (!output) {
 		throw MultitrackVideoError::warning(
 			QTStr("FailedToStartStream.FallbackToDefault").arg(multitrack_video_name));
+	}
 
 	auto multitrack_video_service = create_service(service_config, rtmp_url, stream_key, use_rtmps);
-	if (!multitrack_video_service)
+	if (!multitrack_video_service) {
 		throw MultitrackVideoError::warning(
 			QTStr("FailedToStartStream.FallbackToDefault").arg(multitrack_video_name));
+	}
 
 	obs_output_set_service(output, multitrack_video_service);
 
@@ -544,8 +555,9 @@ void MultitrackVideoOutput::StartedStreaming()
 		}
 	}
 
-	if (!dump_output)
+	if (!dump_output) {
 		return;
+	}
 
 	auto result = obs_output_start(dump_output);
 	blog(LOG_INFO, "MultitrackVideoOutput: starting recording%s", result ? "" : " failed");
@@ -558,20 +570,24 @@ void MultitrackVideoOutput::StopStreaming()
 	OBSOutputAutoRelease current_output;
 	{
 		const std::lock_guard current_lock{current_mutex};
-		if (current && current->output_)
+		if (current && current->output_) {
 			current_output = obs_output_get_ref(current->output_);
+		}
 	}
-	if (current_output)
+	if (current_output) {
 		obs_output_stop(current_output);
+	}
 
 	OBSOutputAutoRelease dump_output;
 	{
 		const std::lock_guard current_stream_dump_lock{current_stream_dump_mutex};
-		if (current_stream_dump && current_stream_dump->output_)
+		if (current_stream_dump && current_stream_dump->output_) {
 			dump_output = obs_output_get_ref(current_stream_dump->output_);
+		}
 	}
-	if (dump_output)
+	if (dump_output) {
 		obs_output_stop(dump_output);
+	}
 }
 
 bool MultitrackVideoOutput::HandleIncompatibleSettings(QWidget *parent, config_t *config, obs_service_t *service,
@@ -584,8 +600,9 @@ bool MultitrackVideoOutput::HandleIncompatibleSettings(QWidget *parent, config_t
 	size_t num = 1;
 
 	auto check_setting = [&](bool setting, const char *name, const char *section) {
-		if (!setting)
+		if (!setting) {
 			return;
+		}
 
 		incompatible_settings += QString(" %1. %2\n").arg(num).arg(QTStr(name));
 
@@ -602,8 +619,9 @@ bool MultitrackVideoOutput::HandleIncompatibleSettings(QWidget *parent, config_t
 
 	check_setting(enableDynBitrate, "Basic.Settings.Output.DynamicBitrate.Beta", "Basic.Settings.Advanced.Network");
 
-	if (incompatible_settings.isEmpty())
+	if (incompatible_settings.isEmpty()) {
 		return true;
+	}
 
 	OBSDataAutoRelease service_settings = obs_service_get_settings(service);
 
@@ -661,8 +679,9 @@ static bool create_video_encoders(const GoLiveApi::Config &go_live_config,
 	}
 
 	std::shared_ptr<obs_encoder_group_t> encoder_group(obs_encoder_group_create(), obs_encoder_group_destroy);
-	if (!encoder_group)
+	if (!encoder_group) {
 		return false;
+	}
 
 	auto max_canvas_idx = canvases.size() - 1;
 
@@ -675,15 +694,18 @@ static bool create_video_encoders(const GoLiveApi::Config &go_live_config,
 
 		auto &canvas = canvases[config.canvas_index];
 		auto encoder = create_video_encoder(video_encoder_name_buffer, i, config, canvas);
-		if (!encoder)
+		if (!encoder) {
 			return false;
+		}
 
-		if (!obs_encoder_set_group(encoder, encoder_group.get()))
+		if (!obs_encoder_set_group(encoder, encoder_group.get())) {
 			return false;
+		}
 
 		obs_output_set_video_encoder2(output, encoder, i);
-		if (recording_output)
+		if (recording_output) {
 			obs_output_set_video_encoder2(recording_output, encoder, i);
+		}
 	}
 
 	video_encoder_group = encoder_group;
@@ -698,16 +720,18 @@ static void create_audio_encoders(const GoLiveApi::Config &go_live_config,
 {
 	speaker_layout speakers = SPEAKERS_UNKNOWN;
 	obs_audio_info oai = {};
-	if (obs_get_audio_info(&oai))
+	if (obs_get_audio_info(&oai)) {
 		speakers = oai.speakers;
+	}
 
 	current_layout = speakers;
 
 	auto sanitize_audio_channels = [&](obs_encoder_t *encoder, uint32_t channels) {
 		speaker_layout target_speakers = SPEAKERS_UNKNOWN;
 		for (size_t i = 0; i <= (size_t)SPEAKERS_7POINT1; i++) {
-			if (get_audio_channels((speaker_layout)i) != channels)
+			if (get_audio_channels((speaker_layout)i) != channels) {
 				continue;
+			}
 
 			target_speakers = (speaker_layout)i;
 			break;
@@ -721,12 +745,14 @@ static void create_audio_encoders(const GoLiveApi::Config &go_live_config,
 			return;
 		}
 		if (speakers != SPEAKERS_UNKNOWN &&
-		    (channels > get_audio_channels(speakers) || speakers == target_speakers))
+		    (channels > get_audio_channels(speakers) || speakers == target_speakers)) {
 			return;
+		}
 
 		auto it = std::find(std::begin(speaker_layouts), std::end(speaker_layouts), target_speakers);
-		if (it == std::end(speaker_layouts))
+		if (it == std::end(speaker_layouts)) {
 			speaker_layouts.push_back(target_speakers);
+		}
 	};
 
 	using encoder_configs_type = decltype(go_live_config.audio_configurations.live);
@@ -749,8 +775,9 @@ static void create_audio_encoders(const GoLiveApi::Config &go_live_config,
 			sanitize_audio_channels(audio_encoder, configs[i].channels);
 
 			obs_output_set_audio_encoder(output, audio_encoder, output_encoder_index);
-			if (recording_output)
+			if (recording_output) {
 				obs_output_set_audio_encoder(recording_output, audio_encoder, output_encoder_index);
+			}
 			output_encoder_index += 1;
 			audio_encoders.emplace_back(std::move(audio_encoder));
 		}
@@ -758,8 +785,9 @@ static void create_audio_encoders(const GoLiveApi::Config &go_live_config,
 
 	create_encoders("multitrack video live audio", go_live_config.audio_configurations.live, main_audio_mixer);
 
-	if (!vod_track_mixer.has_value())
+	if (!vod_track_mixer.has_value()) {
 		return;
+	}
 
 	// we already check for empty inside of `create_encoders`
 	encoder_configs_type empty = {};
@@ -795,8 +823,9 @@ static const char *speaker_layout_to_string(speaker_layout layout)
 static void handle_speaker_layout_issues(QWidget *parent, const QString &multitrack_video_name,
 					 const std::vector<speaker_layout> &requested_layouts, speaker_layout layout)
 {
-	if (requested_layouts.empty())
+	if (requested_layouts.empty()) {
 		return;
+	}
 
 	QString message;
 	if (requested_layouts.size() == 1) {
@@ -840,11 +869,13 @@ static OBSOutputs SetupOBSOutput(QWidget *parent, const QString &multitrack_vide
 {
 	auto output = create_output();
 	OBSOutputAutoRelease recording_output;
-	if (dump_stream_to_file_config)
+	if (dump_stream_to_file_config) {
 		recording_output = create_recording_output(dump_stream_to_file_config);
+	}
 
-	if (!create_video_encoders(go_live_config, video_encoder_group, output, recording_output, canvases))
+	if (!create_video_encoders(go_live_config, video_encoder_group, output, recording_output, canvases)) {
 		return {nullptr, nullptr};
+	}
 
 	std::vector<speaker_layout> requested_speaker_layouts;
 	speaker_layout current_layout = SPEAKERS_UNKNOWN;
@@ -885,8 +916,9 @@ std::optional<MultitrackVideoOutput::OBSOutputObjects> MultitrackVideoOutput::ta
 void MultitrackVideoOutput::ReleaseOnMainThread(std::optional<OBSOutputObjects> objects)
 {
 
-	if (!objects.has_value())
+	if (!objects.has_value()) {
 		return;
+	}
 
 	QMetaObject::invokeMethod(
 		QApplication::instance()->thread(), [objects = std::move(objects)] {}, Qt::QueuedConnection);
@@ -906,11 +938,13 @@ void StreamStopHandler(void *arg, calldata_t *data)
 	OBSOutputAutoRelease stream_dump_output;
 	{
 		const std::lock_guard<std::mutex> current_stream_dump_lock{self->current_stream_dump_mutex};
-		if (self->current_stream_dump && self->current_stream_dump->output_)
+		if (self->current_stream_dump && self->current_stream_dump->output_) {
 			stream_dump_output = obs_output_get_ref(self->current_stream_dump->output_);
+		}
 	}
-	if (stream_dump_output)
+	if (stream_dump_output) {
 		obs_output_stop(stream_dump_output);
+	}
 
 	/* Unregister the BPM (Broadcast Performance Metrics) callback and destroy the allocated metrics data. */
 	obs_output_remove_packet_callback(static_cast<obs_output_t *>(calldata_ptr(data, "output")), bpm_inject, NULL);
