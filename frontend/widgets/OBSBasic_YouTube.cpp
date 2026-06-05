@@ -53,9 +53,8 @@ void OBSBasic::YouTubeActionDialogOk(const std::string &broadcastId, const std::
 		QMetaObject::invokeMethod(this, "StartStreaming");
 }
 
-void OBSBasic::YoutubeStreamCheck(const std::string &key)
+void OBSBasic::YoutubeStreamCheck(YoutubeApiWrappers *apiYouTube, const std::string &key)
 {
-	YoutubeApiWrappers *apiYouTube(dynamic_cast<YoutubeApiWrappers *>(GetAuth()));
 	if (!apiYouTube) {
 		/* technically we should never get here -Lain */
 		QMetaObject::invokeMethod(this, "ForceStopStreaming", Qt::QueuedConnection);
@@ -196,8 +195,9 @@ void OBSBasic::SetupBroadcast()
 {
 #ifdef YOUTUBE_ENABLED
 	Auth *const auth = GetAuth();
-	if (IsYouTubeService(auth->service())) {
-		OBSYoutubeActions dialog(this, auth, broadcastReady);
+	YoutubeApiWrappers *apiYouTube = dynamic_cast<YoutubeApiWrappers *>(auth);
+	if (apiYouTube) {
+		OBSYoutubeActions dialog(this, *apiYouTube, broadcastReady);
 		connect(&dialog, &OBSYoutubeActions::ok, this, &OBSBasic::YouTubeActionDialogOk);
 		dialog.exec();
 	}
