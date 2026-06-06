@@ -16,6 +16,7 @@
 #include <obs.hpp>
 #include <obs-frontend-api.h>
 
+#include <QContextMenuEvent>
 #include <QFrame>
 #include <QMouseEvent>
 #include <QWheelEvent>
@@ -35,6 +36,7 @@ signals:
 	void mouseDraggedAt(QPointF pos);
 	void mouseReleasedHere();
 	void wheelScaled(int delta);
+	void contextMenuRequested(QPoint globalPos);
 
 protected:
 	void mousePressEvent(QMouseEvent *e) override
@@ -49,6 +51,7 @@ protected:
 	}
 	void mouseReleaseEvent(QMouseEvent *) override { emit mouseReleasedHere(); }
 	void wheelEvent(QWheelEvent *e) override { emit wheelScaled(e->angleDelta().y()); }
+	void contextMenuEvent(QContextMenuEvent *e) override { emit contextMenuRequested(e->globalPos()); }
 };
 
 class EmpireVerticalDock : public QFrame {
@@ -74,6 +77,8 @@ class EmpireVerticalDock : public QFrame {
 	float previewX = 0.0f, previewY = 0.0f, previewScale = 1.0f; /* last render transform (device px) */
 	float dragStartCx = 0.0f, dragStartCy = 0.0f;                /* mouse-down position in canvas space */
 	float itemStartX = 0.0f, itemStartY = 0.0f;                  /* item position at mouse-down */
+
+	int addCounter = 0; /* for unique added-source names */
 
 	OBSOutputAutoRelease recordOutput;
 	OBSEncoderAutoRelease recordVEnc;
@@ -106,6 +111,9 @@ class EmpireVerticalDock : public QFrame {
 	void OnMousePress(const QPointF &pos);
 	void OnMouseDrag(const QPointF &pos);
 	void OnWheel(int delta);
+	void ShowContextMenu(QPoint globalPos);
+	void AddSource(const char *id);
+	void RemoveSelected();
 
 	static void RenderVertical(void *data, uint32_t cx, uint32_t cy);
 	static void OBSFrontendEvent(enum obs_frontend_event event, void *ptr);

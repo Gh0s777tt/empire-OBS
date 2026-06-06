@@ -15,10 +15,12 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QMenu>
 #include <QPushButton>
 #include <QVBoxLayout>
 
 #include <algorithm>
+#include <cstdio>
 #include <cstring>
 #include <string>
 
@@ -134,6 +136,7 @@ EmpireVerticalDock::EmpireVerticalDock(QWidget *parent) : QFrame(parent)
 	connect(display, &EmpireVerticalDisplay::mouseDraggedAt, this, [this](QPointF p) { OnMouseDrag(p); });
 	connect(display, &EmpireVerticalDisplay::mouseReleasedHere, this, [this]() { dragging = false; });
 	connect(display, &EmpireVerticalDisplay::wheelScaled, this, [this](int d) { OnWheel(d); });
+	connect(display, &EmpireVerticalDisplay::contextMenuRequested, this, [this](QPoint p) { ShowContextMenu(p); });
 
 	LoadConfig();
 	UpdateModeButton();
@@ -328,6 +331,70 @@ void EmpireVerticalDock::OnWheel(int delta)
 	if (scale.x < 0.02f || scale.x > 50.0f)
 		return;
 	obs_sceneitem_set_scale(selectedItem, &scale);
+}
+
+void EmpireVerticalDock::ShowContextMenu(QPoint globalPos)
+{
+	QMenu menu(this);
+	if (customMode) {
+		QMenu *addMenu = menu.addMenu(QStringLiteral("Add source"));
+		static const char *ids[] = {"image_source",   "text_gdiplus", "color_source",    "ffmpeg_source",
+					    "browser_source", "dshow_input",  "monitor_capture", "window_capture"};
+		for (const char *id : ids) {
+			const char *dn = obs_source_get_display_name(id);
+			if (!dn)
+				continue;
+			const QString sid = QString::fromUtf8(id);
+			addMenu->addAction(QString::fromUtf8(dn), this,
+					   [this, sid]() { AddSource(sid.toUtf8().constData()); });
+		}
+		if (selectedItem) {
+			menu.addSeparator();
+			menu.addAction(QStringLiteral("Properties…"), this, [this]() {
+				if (selectedItem)
+					obs_frontend_open_source_properties(obs_sceneitem_get_source(selectedItem));
+			});
+			menu.addAction(QStringLiteral("Remove selected"), this, [this]() { RemoveSelected(); });
+		}
+	} else {
+		menu.addAction(QStringLiteral("Switch to Custom (edit) to compose"), this,
+			       [this]() { ToggleCustomMode(); });
+	}
+	menu.exec(globalPos);
+}
+
+void EmpireVerticalDock::AddSource(const char *id)
+{
+	if (!vScene)
+		return;
+
+	char name[160];
+	snprintf(name, sizeof(name), "Empire Vertical: %s %d", id, ++addCounter);
+	obs_source_t *source = obs_source_create(id, name, nullptr, nullptr);
+	if (!source)
+		return;
+
+	obs_sceneitem_t *item = obs_scene_add(vScene, source);
+	if (item) {
+		obs_sceneitem_set_alignment(item, OBS_ALIGN_CENTER);
+		struct vec2 pos;
+		vec2_set(&pos, (float)VERTICAL_W / 2.0f, (float)VERTICAL_H / 2.0f);
+		obs_sceneitem_set_pos(item, &pos);
+		selectedItem = item;
+	}
+
+	obs_frontend_open_source_properties(source);
+	obs_source_release(source);
+}
+
+void EmpireVerticalDock::RemoveSelected()
+{
+	if (!selectedItem)
+		return;
+	if (selectedItem == mirrorItem)
+		mirrorItem = nullptr;
+	obs_sceneitem_remove(selectedItem);
+	selectedItem = nullptr;
 }
 
 void EmpireVerticalDock::UpdateRecordButton()
@@ -569,6 +636,32 @@ void EmpireVerticalDock::RenderVertical(void *data, uint32_t, uint32_t)
 	 * composed texture — a private canvas isn't composited by the core video
 	 * loop, so its texture would be empty/garbage. */
 	obs_canvas_render(canvas);
+
+	/* Empire-red outline around the selected item in Custom mode. */
+	if (self->customMode && self->selectedItem) {
+		matrix4 boxT;
+		obs_sceneitem_get_box_transform(self->selectedItem, &boxT);
+		vec3 c[5];
+		vec3_set(&c[0], 0.0f, 0.0f, 0.0f);
+		vec3_set(&c[1], 1.0f, 0.0f, 0.0f);
+		vec3_set(&c[2], 1.0f, 1.0f, 0.0f);
+		vec3_set(&c[3], 0.0f, 1.0f, 0.0f);
+		c[4] = c[0];
+		for (int i = 0; i < 5; i++)
+			vec3_transform(&c[i], &c[i], &boxT);
+
+		gs_effect_t *solid = obs_get_base_effect(OBS_EFFECT_SOLID);
+		gs_eparam_t *colParam = gs_effect_get_param_by_name(solid, "color");
+		struct vec4 col;
+		vec4_set(&col, 0.898f, 0.035f, 0.078f, 1.0f);
+		gs_effect_set_vec4(colParam, &col);
+		while (gs_effect_loop(solid, "Solid")) {
+			gs_render_start(false);
+			for (int i = 0; i < 5; i++)
+				gs_vertex2f(c[i].x, c[i].y);
+			gs_render_stop(GS_LINESTRIP);
+		}
+	}
 
 	gs_projection_pop();
 	gs_viewport_pop();
