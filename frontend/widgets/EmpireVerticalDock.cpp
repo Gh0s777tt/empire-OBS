@@ -6,6 +6,8 @@
 #include <obs-frontend-api.h>
 #include <graphics/graphics.h>
 #include <graphics/vec2.h>
+#include <graphics/vec3.h>
+#include <graphics/matrix4.h>
 #include <util/platform.h>
 #include <util/config-file.h>
 
@@ -15,6 +17,7 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
+#include <algorithm>
 #include <cstring>
 #include <string>
 
@@ -36,19 +39,44 @@ static const char *empire_pick_video_encoder()
 	return "obs_x264";
 }
 
+struct EmpireHit {
+	float cx, cy;
+	obs_sceneitem_t *hit;
+};
+
+static bool empire_hit_enum(obs_scene_t *, obs_sceneitem_t *item, void *param)
+{
+	EmpireHit *hd = static_cast<EmpireHit *>(param);
+	matrix4 transform, inv;
+	obs_sceneitem_get_box_transform(item, &transform);
+	if (!matrix4_inv(&inv, &transform))
+		return true;
+	vec3 p;
+	vec3_set(&p, hd->cx, hd->cy, 0.0f);
+	vec3_transform(&p, &p, &inv);
+	/* enum is bottom-to-top, so keeping the last hit yields the topmost item. */
+	if (p.x >= 0.0f && p.x <= 1.0f && p.y >= 0.0f && p.y <= 1.0f)
+		hd->hit = item;
+	return true;
+}
+
 EmpireVerticalDock::EmpireVerticalDock(QWidget *parent) : QFrame(parent)
 {
 	QVBoxLayout *layout = new QVBoxLayout(this);
 	layout->setContentsMargins(0, 0, 0, 0);
 	layout->setSpacing(0);
 
-	/* Row 1: caption + Fill/Fit toggle. */
+	/* Row 1: caption + Mirror/Custom + Fill/Fit. */
 	QHBoxLayout *bar = new QHBoxLayout();
 	bar->setContentsMargins(6, 4, 6, 2);
-	QLabel *caption = new QLabel(QStringLiteral("Vertical 9:16 — mirrors program"), this);
+	QLabel *caption = new QLabel(QStringLiteral("Vertical 9:16"), this);
 	caption->setStyleSheet("color:#B3B3B3;");
 	bar->addWidget(caption);
 	bar->addStretch();
+	customButton = new QPushButton(this);
+	customButton->setStyleSheet("background-color:#333; color:white; font-weight:bold; padding:2px 10px;");
+	connect(customButton, &QPushButton::clicked, this, [this]() { ToggleCustomMode(); });
+	bar->addWidget(customButton);
 	modeButton = new QPushButton(this);
 	modeButton->setStyleSheet("background-color:#333; color:white; font-weight:bold; padding:2px 10px;");
 	connect(modeButton, &QPushButton::clicked, this, [this]() {
@@ -89,22 +117,26 @@ EmpireVerticalDock::EmpireVerticalDock(QWidget *parent) : QFrame(parent)
 	ovi.output_height = VERTICAL_H;
 	canvas = obs_canvas_create_private("Empire Vertical", &ovi, ACTIVATE | SCENE_REF);
 
-	/* Dedicated vertical scene, set as the canvas program (channel 0). */
 	if (canvas) {
 		vScene = obs_canvas_scene_create(canvas, "Empire Vertical");
 		obs_canvas_set_channel(canvas, 0, obs_scene_get_source(vScene));
 	}
 
-	display = new OBSQTDisplay(this);
+	display = new EmpireVerticalDisplay(this);
 	layout->addWidget(display, 1);
 
 	auto addDraw = [this](OBSQTDisplay *d) {
 		obs_display_add_draw_callback(d->GetDisplay(), EmpireVerticalDock::RenderVertical, this);
 	};
 	connect(display, &OBSQTDisplay::DisplayCreated, this, addDraw);
+	connect(display, &EmpireVerticalDisplay::mousePressedAt, this, [this](QPointF p) { OnMousePress(p); });
+	connect(display, &EmpireVerticalDisplay::mouseDraggedAt, this, [this](QPointF p) { OnMouseDrag(p); });
+	connect(display, &EmpireVerticalDisplay::mouseReleasedHere, this, [this]() { dragging = false; });
+	connect(display, &EmpireVerticalDisplay::wheelScaled, this, [this](int d) { OnWheel(d); });
 
 	LoadConfig();
 	UpdateModeButton();
+	UpdateCustomButton();
 	UpdateRecordButton();
 	UpdateStreamButton();
 	SyncToCurrentScene();
@@ -132,12 +164,9 @@ EmpireVerticalDock::~EmpireVerticalDock()
 		streamService = nullptr;
 	}
 
-	/* Remove the draw callback BEFORE tearing down the canvas so the
-	 * graphics thread can never touch a freed canvas. */
 	if (display && display->GetDisplay())
 		obs_display_remove_draw_callback(display->GetDisplay(), EmpireVerticalDock::RenderVertical, this);
 
-	/* The canvas owns vScene + its items; removing/releasing it frees them. */
 	if (canvas) {
 		obs_canvas_set_channel(canvas, 0, nullptr);
 		obs_canvas_remove(canvas);
@@ -145,6 +174,7 @@ EmpireVerticalDock::~EmpireVerticalDock()
 		canvas = nullptr;
 	}
 	mirrorItem = nullptr;
+	selectedItem = nullptr;
 	vScene = nullptr;
 }
 
@@ -158,6 +188,7 @@ void EmpireVerticalDock::SyncToCurrentScene()
 		obs_sceneitem_remove(mirrorItem);
 		mirrorItem = nullptr;
 	}
+	selectedItem = nullptr;
 
 	obs_source_t *prog = obs_frontend_get_current_scene();
 	if (!prog)
@@ -174,7 +205,6 @@ void EmpireVerticalDock::ApplyFraming()
 	if (!mirrorItem)
 		return;
 
-	/* Scale the mirrored program to FILL (crop) or FIT (letterbox) the 9:16 frame. */
 	struct vec2 bounds;
 	vec2_set(&bounds, (float)VERTICAL_W, (float)VERTICAL_H);
 	obs_sceneitem_set_bounds_type(mirrorItem, fillMode ? OBS_BOUNDS_SCALE_OUTER : OBS_BOUNDS_SCALE_INNER);
@@ -187,10 +217,116 @@ void EmpireVerticalDock::ApplyFraming()
 	obs_sceneitem_set_pos(mirrorItem, &pos);
 }
 
+void EmpireVerticalDock::ToggleCustomMode()
+{
+	customMode = !customMode;
+	selectedItem = nullptr;
+	dragging = false;
+
+	if (customMode) {
+		/* Freeze sync and convert the mirror to free pos+scale matching the
+		 * current framing, so the user can pan/zoom it without a jump. */
+		if (mirrorItem) {
+			obs_sceneitem_set_bounds_type(mirrorItem, OBS_BOUNDS_NONE);
+			obs_source_t *src = obs_sceneitem_get_source(mirrorItem);
+			float sw = (float)obs_source_get_width(src);
+			float sh = (float)obs_source_get_height(src);
+			if (sw > 0.0f && sh > 0.0f) {
+				float cover = std::max((float)VERTICAL_W / sw, (float)VERTICAL_H / sh);
+				float contain = std::min((float)VERTICAL_W / sw, (float)VERTICAL_H / sh);
+				struct vec2 scale;
+				scale.x = scale.y = (fillMode ? cover : contain);
+				obs_sceneitem_set_scale(mirrorItem, &scale);
+			}
+			obs_sceneitem_set_alignment(mirrorItem, OBS_ALIGN_CENTER);
+			struct vec2 pos;
+			vec2_set(&pos, (float)VERTICAL_W / 2.0f, (float)VERTICAL_H / 2.0f);
+			obs_sceneitem_set_pos(mirrorItem, &pos);
+		}
+	} else {
+		ApplyFraming();
+		SyncToCurrentScene();
+	}
+
+	UpdateCustomButton();
+}
+
 void EmpireVerticalDock::UpdateModeButton()
 {
 	if (modeButton)
 		modeButton->setText(fillMode ? QStringLiteral("Fill (crop)") : QStringLiteral("Fit (bars)"));
+}
+
+void EmpireVerticalDock::UpdateCustomButton()
+{
+	if (customButton)
+		customButton->setText(customMode ? QStringLiteral("Custom (edit)") : QStringLiteral("Mirror"));
+	if (modeButton)
+		modeButton->setEnabled(!customMode);
+}
+
+bool EmpireVerticalDock::WidgetToCanvas(const QPointF &pos, float &cx, float &cy) const
+{
+	if (previewScale <= 0.0f)
+		return false;
+	const float dpr = (float)display->devicePixelRatioF();
+	cx = ((float)pos.x() * dpr - previewX) / previewScale;
+	cy = ((float)pos.y() * dpr - previewY) / previewScale;
+	return cx >= 0.0f && cy >= 0.0f && cx <= (float)VERTICAL_W && cy <= (float)VERTICAL_H;
+}
+
+obs_sceneitem_t *EmpireVerticalDock::HitTest(float cx, float cy) const
+{
+	EmpireHit hd = {cx, cy, nullptr};
+	if (vScene)
+		obs_scene_enum_items(vScene, empire_hit_enum, &hd);
+	return hd.hit;
+}
+
+void EmpireVerticalDock::OnMousePress(const QPointF &pos)
+{
+	if (!customMode)
+		return;
+	float cx, cy;
+	if (!WidgetToCanvas(pos, cx, cy))
+		return;
+
+	selectedItem = HitTest(cx, cy);
+	dragging = (selectedItem != nullptr);
+	if (dragging) {
+		dragStartCx = cx;
+		dragStartCy = cy;
+		struct vec2 p;
+		obs_sceneitem_get_pos(selectedItem, &p);
+		itemStartX = p.x;
+		itemStartY = p.y;
+	}
+}
+
+void EmpireVerticalDock::OnMouseDrag(const QPointF &pos)
+{
+	if (!customMode || !dragging || !selectedItem)
+		return;
+	float cx, cy;
+	WidgetToCanvas(pos, cx, cy); /* keep dragging even slightly outside the frame */
+	struct vec2 p;
+	p.x = itemStartX + (cx - dragStartCx);
+	p.y = itemStartY + (cy - dragStartCy);
+	obs_sceneitem_set_pos(selectedItem, &p);
+}
+
+void EmpireVerticalDock::OnWheel(int delta)
+{
+	if (!customMode || !selectedItem)
+		return;
+	struct vec2 scale;
+	obs_sceneitem_get_scale(selectedItem, &scale);
+	const float factor = (delta > 0) ? 1.05f : (1.0f / 1.05f);
+	scale.x *= factor;
+	scale.y *= factor;
+	if (scale.x < 0.02f || scale.x > 50.0f)
+		return;
+	obs_sceneitem_set_scale(selectedItem, &scale);
 }
 
 void EmpireVerticalDock::UpdateRecordButton()
@@ -201,16 +337,6 @@ void EmpireVerticalDock::UpdateRecordButton()
 	recordButton->setStyleSheet(
 		recording ? "background-color:#B20710; color:white; font-weight:bold; padding:2px 10px;"
 			  : "background-color:#46D369; color:#141414; font-weight:bold; padding:2px 10px;");
-}
-
-void EmpireVerticalDock::UpdateStreamButton()
-{
-	if (!streamButton)
-		return;
-	streamButton->setText(streaming ? QStringLiteral("Stop ◉ LIVE") : QStringLiteral("Go Live 9:16"));
-	streamButton->setStyleSheet(
-		streaming ? "background-color:#B20710; color:white; font-weight:bold; padding:2px 10px;"
-			  : "background-color:#E50914; color:white; font-weight:bold; padding:2px 10px;");
 }
 
 void EmpireVerticalDock::ToggleRecording()
@@ -232,12 +358,10 @@ void EmpireVerticalDock::StartRecording()
 	if (!vid)
 		return;
 
-	/* Release any previous (already-stopped) output/encoders. */
 	recordOutput = nullptr;
 	recordVEnc = nullptr;
 	recordAEnc = nullptr;
 
-	/* Video encoder bound to the vertical canvas video. */
 	OBSDataAutoRelease vset = obs_data_create();
 	obs_data_set_int(vset, "bitrate", 12000);
 	obs_data_set_string(vset, "rate_control", "CBR");
@@ -246,13 +370,11 @@ void EmpireVerticalDock::StartRecording()
 		recordVEnc = obs_video_encoder_create("obs_x264", "empire_vert_venc", vset, nullptr);
 	obs_encoder_set_video(recordVEnc, vid);
 
-	/* Audio encoder bound to the main audio mix. */
 	OBSDataAutoRelease aset = obs_data_create();
 	obs_data_set_int(aset, "bitrate", 160);
 	recordAEnc = obs_audio_encoder_create("ffmpeg_aac", "empire_vert_aenc", aset, 0, nullptr);
 	obs_encoder_set_audio(recordAEnc, obs_get_audio());
 
-	/* Output file: the configured recording folder + a timestamped name. */
 	config_t *cfg = obs_frontend_get_profile_config();
 	const char *mode = cfg ? config_get_string(cfg, "Output", "Mode") : nullptr;
 	const char *dir = nullptr;
@@ -284,6 +406,16 @@ void EmpireVerticalDock::StartRecording()
 	}
 }
 
+void EmpireVerticalDock::UpdateStreamButton()
+{
+	if (!streamButton)
+		return;
+	streamButton->setText(streaming ? QStringLiteral("Stop ◉ LIVE") : QStringLiteral("Go Live 9:16"));
+	streamButton->setStyleSheet(
+		streaming ? "background-color:#B20710; color:white; font-weight:bold; padding:2px 10px;"
+			  : "background-color:#E50914; color:white; font-weight:bold; padding:2px 10px;");
+}
+
 void EmpireVerticalDock::ToggleStreaming()
 {
 	if (streaming && streamOutput) {
@@ -310,7 +442,6 @@ void EmpireVerticalDock::StartStreaming()
 		return;
 	}
 
-	/* Release any previous (already-stopped) output/encoders/service. */
 	streamOutput = nullptr;
 	streamVEnc = nullptr;
 	streamAEnc = nullptr;
@@ -383,6 +514,9 @@ void EmpireVerticalDock::OBSFrontendEvent(enum obs_frontend_event event, void *p
 
 	switch (event) {
 	case OBS_FRONTEND_EVENT_SCENE_CHANGED:
+		if (!dock->customMode)
+			dock->SyncToCurrentScene();
+		break;
 	case OBS_FRONTEND_EVENT_FINISHED_LOADING:
 		dock->SyncToCurrentScene();
 		break;
@@ -409,6 +543,11 @@ void EmpireVerticalDock::RenderVertical(void *data, uint32_t, uint32_t)
 	int x = 0, y = 0;
 	float scale = 1.0f;
 	GetScaleAndCenterPos((int)ovi.base_width, (int)ovi.base_height, (int)dw, (int)dh, x, y, scale);
+
+	/* Remember the transform so mouse events can map widget px -> canvas space. */
+	self->previewX = (float)x;
+	self->previewY = (float)y;
+	self->previewScale = scale;
 
 	const int cx = int(scale * float(ovi.base_width));
 	const int cy = int(scale * float(ovi.base_height));

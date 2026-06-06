@@ -3,28 +3,60 @@
 /*
  * Empire OBS — Vertical 9:16 dock.
  *
- * Hosts a private 1080x1920 libobs canvas (obs_canvas API) and renders a live
- * preview of it into an OBSQTDisplay. The canvas owns a dedicated vertical
- * scene that mirrors the current program scene as a single item, scaled to
- * FILL (crop to cover 9:16) or FIT (letterbox) the frame — toggled live.
- * The vertical canvas can be recorded to a file and streamed to an RTMP
- * destination, independently of (and alongside) the main 16:9 output.
+ * Hosts a private 1080x1920 libobs canvas rendered into an OBSQTDisplay. The
+ * canvas owns a vertical scene that, in MIRROR mode, mirrors the program scene
+ * (Fill/Fit). In CUSTOM mode auto-sync is frozen and the scene becomes a
+ * composable 9:16 layout: drag to move, wheel to scale the selected item.
+ * The vertical canvas can be recorded and streamed (RTMP) independently of the
+ * main 16:9 output.
  */
+
+#include "OBSQTDisplay.hpp"
 
 #include <obs.hpp>
 #include <obs-frontend-api.h>
 
 #include <QFrame>
+#include <QMouseEvent>
+#include <QWheelEvent>
 
-class OBSQTDisplay;
 class QPushButton;
 class QLineEdit;
+
+/* OBSQTDisplay that forwards mouse events so the dock can edit the scene. */
+class EmpireVerticalDisplay : public OBSQTDisplay {
+	Q_OBJECT
+
+public:
+	EmpireVerticalDisplay(QWidget *parent = nullptr) : OBSQTDisplay(parent) {}
+
+signals:
+	void mousePressedAt(QPointF pos);
+	void mouseDraggedAt(QPointF pos);
+	void mouseReleasedHere();
+	void wheelScaled(int delta);
+
+protected:
+	void mousePressEvent(QMouseEvent *e) override
+	{
+		if (e->button() == Qt::LeftButton)
+			emit mousePressedAt(e->position());
+	}
+	void mouseMoveEvent(QMouseEvent *e) override
+	{
+		if (e->buttons() & Qt::LeftButton)
+			emit mouseDraggedAt(e->position());
+	}
+	void mouseReleaseEvent(QMouseEvent *) override { emit mouseReleasedHere(); }
+	void wheelEvent(QWheelEvent *e) override { emit wheelScaled(e->angleDelta().y()); }
+};
 
 class EmpireVerticalDock : public QFrame {
 	Q_OBJECT
 
-	OBSQTDisplay *display = nullptr;
+	EmpireVerticalDisplay *display = nullptr;
 	QPushButton *modeButton = nullptr;
+	QPushButton *customButton = nullptr;
 	QPushButton *recordButton = nullptr;
 	QPushButton *streamButton = nullptr;
 	QLineEdit *urlEdit = nullptr;
@@ -34,6 +66,14 @@ class EmpireVerticalDock : public QFrame {
 	obs_scene_t *vScene = nullptr;         /* borrowed — owned by the canvas */
 	obs_sceneitem_t *mirrorItem = nullptr; /* the program-mirror item in vScene */
 	bool fillMode = true;                  /* true = Fill/crop, false = Fit/letterbox */
+	bool customMode = false;               /* true = freeze sync + edit the scene */
+
+	/* editing state */
+	obs_sceneitem_t *selectedItem = nullptr;
+	bool dragging = false;
+	float previewX = 0.0f, previewY = 0.0f, previewScale = 1.0f; /* last render transform (device px) */
+	float dragStartCx = 0.0f, dragStartCy = 0.0f;                /* mouse-down position in canvas space */
+	float itemStartX = 0.0f, itemStartY = 0.0f;                  /* item position at mouse-down */
 
 	OBSOutputAutoRelease recordOutput;
 	OBSEncoderAutoRelease recordVEnc;
@@ -49,6 +89,8 @@ class EmpireVerticalDock : public QFrame {
 	void SyncToCurrentScene();
 	void ApplyFraming();
 	void UpdateModeButton();
+	void ToggleCustomMode();
+	void UpdateCustomButton();
 	void ToggleRecording();
 	void StartRecording();
 	void UpdateRecordButton();
@@ -57,6 +99,13 @@ class EmpireVerticalDock : public QFrame {
 	void UpdateStreamButton();
 	void LoadConfig();
 	void SaveConfig();
+
+	/* editing helpers */
+	bool WidgetToCanvas(const QPointF &pos, float &cx, float &cy) const;
+	obs_sceneitem_t *HitTest(float cx, float cy) const;
+	void OnMousePress(const QPointF &pos);
+	void OnMouseDrag(const QPointF &pos);
+	void OnWheel(int delta);
 
 	static void RenderVertical(void *data, uint32_t cx, uint32_t cy);
 	static void OBSFrontendEvent(enum obs_frontend_event event, void *ptr);
