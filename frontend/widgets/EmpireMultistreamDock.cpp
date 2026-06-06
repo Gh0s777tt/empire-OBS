@@ -29,9 +29,9 @@ EmpireMultistreamDock::EmpireMultistreamDock(QWidget *parent) : QFrame(parent)
 	title->setStyleSheet("font-weight: bold; color: #E50914;");
 	layout->addWidget(title);
 
-	QLabel *hint = new QLabel(QStringLiteral("Each enabled destination streams alongside your main stream, "
-						 "sharing its encoders (no extra GPU/CPU). They start and stop "
-						 "automatically with the main stream."),
+	QLabel *hint = new QLabel(QStringLiteral("Each enabled destination streams alongside your main stream. Leave "
+						 "kb/s blank to share the main encoder (no extra GPU/CPU); set a "
+						 "value to give that destination its own bitrate (extra encode)."),
 				  this);
 	hint->setWordWrap(true);
 	hint->setStyleSheet("color: #B3B3B3;");
@@ -43,7 +43,8 @@ EmpireMultistreamDock::EmpireMultistreamDock(QWidget *parent) : QFrame(parent)
 	grid->addWidget(new QLabel(QStringLiteral("On"), this), 0, 0);
 	grid->addWidget(new QLabel(QStringLiteral("RTMP URL"), this), 0, 1);
 	grid->addWidget(new QLabel(QStringLiteral("Stream key"), this), 0, 2);
-	grid->addWidget(new QLabel(QStringLiteral("Status"), this), 0, 3);
+	grid->addWidget(new QLabel(QStringLiteral("kb/s"), this), 0, 3);
+	grid->addWidget(new QLabel(QStringLiteral("Status"), this), 0, 4);
 
 	for (int i = 0; i < NUM_DESTS; i++) {
 		rows[i].enable = new QCheckBox(this);
@@ -52,17 +53,22 @@ EmpireMultistreamDock::EmpireMultistreamDock(QWidget *parent) : QFrame(parent)
 		rows[i].key = new QLineEdit(this);
 		rows[i].key->setEchoMode(QLineEdit::Password);
 		rows[i].key->setPlaceholderText(QStringLiteral("stream key"));
+		rows[i].bitrate = new QLineEdit(this);
+		rows[i].bitrate->setPlaceholderText(QStringLiteral("same"));
+		rows[i].bitrate->setMaximumWidth(64);
 		rows[i].status = new QLabel(QStringLiteral("idle"), this);
 		rows[i].status->setStyleSheet("color: #808080;");
 
 		grid->addWidget(rows[i].enable, i + 1, 0);
 		grid->addWidget(rows[i].url, i + 1, 1);
 		grid->addWidget(rows[i].key, i + 1, 2);
-		grid->addWidget(rows[i].status, i + 1, 3);
+		grid->addWidget(rows[i].bitrate, i + 1, 3);
+		grid->addWidget(rows[i].status, i + 1, 4);
 
 		connect(rows[i].enable, &QCheckBox::toggled, this, [this]() { Save(); });
 		connect(rows[i].url, &QLineEdit::editingFinished, this, [this]() { Save(); });
 		connect(rows[i].key, &QLineEdit::editingFinished, this, [this]() { Save(); });
+		connect(rows[i].bitrate, &QLineEdit::editingFinished, this, [this]() { Save(); });
 	}
 	grid->setColumnStretch(1, 3);
 	grid->setColumnStretch(2, 2);
@@ -132,6 +138,9 @@ void EmpireMultistreamDock::Load()
 		snprintf(k, sizeof(k), "Dest%dKey", i + 1);
 		const char *key = config_get_string(cfg, MS_SECTION, k);
 		rows[i].key->setText(key ? key : "");
+		snprintf(k, sizeof(k), "Dest%dBitrate", i + 1);
+		const char *br = config_get_string(cfg, MS_SECTION, k);
+		rows[i].bitrate->setText(br ? br : "");
 	}
 }
 
@@ -146,6 +155,8 @@ void EmpireMultistreamDock::Save()
 		config_set_string(cfg, MS_SECTION, k, QT_TO_UTF8(rows[i].url->text()));
 		snprintf(k, sizeof(k), "Dest%dKey", i + 1);
 		config_set_string(cfg, MS_SECTION, k, QT_TO_UTF8(rows[i].key->text()));
+		snprintf(k, sizeof(k), "Dest%dBitrate", i + 1);
+		config_set_string(cfg, MS_SECTION, k, QT_TO_UTF8(rows[i].bitrate->text()));
 	}
 	config_save_safe(cfg, "tmp", nullptr);
 }
@@ -158,9 +169,9 @@ void EmpireMultistreamDock::StartAll()
 	if (!mainOutput)
 		return;
 
-	obs_encoder_t *venc = obs_output_get_video_encoder(mainOutput);
+	obs_encoder_t *mainVenc = obs_output_get_video_encoder(mainOutput);
 	obs_encoder_t *aenc = obs_output_get_audio_encoder(mainOutput, 0);
-	if (!venc || !aenc)
+	if (!mainVenc || !aenc)
 		return;
 
 	for (int i = 0; i < NUM_DESTS; i++) {
@@ -182,6 +193,24 @@ void EmpireMultistreamDock::StartAll()
 		snprintf(svcName, sizeof(svcName), "empire_dest_%d", i + 1);
 		OBSServiceAutoRelease service = obs_service_create("rtmp_custom", svcName, svcSettings, nullptr);
 
+		/* Dedicated encoder if a custom bitrate is set; otherwise share the main encoder. */
+		int customBitrate = rows[i].bitrate->text().trimmed().toInt();
+		obs_encoder_t *venc = mainVenc;
+		bool custom = false;
+		if (customBitrate > 0) {
+			OBSDataAutoRelease encSettings = obs_data_create();
+			obs_data_set_int(encSettings, "bitrate", customBitrate);
+			obs_data_set_string(encSettings, "rate_control", "CBR");
+			char encName[64];
+			snprintf(encName, sizeof(encName), "empire_venc_%d", i + 1);
+			OBSEncoderAutoRelease dedicated =
+				obs_video_encoder_create("obs_x264", encName, encSettings, nullptr);
+			obs_encoder_set_video(dedicated, obs_get_video());
+			venc = dedicated;
+			custom = true;
+			liveEncoders.push_back(std::move(dedicated));
+		}
+
 		char outName[64];
 		snprintf(outName, sizeof(outName), "empire_stream_%d", i + 1);
 		OBSOutputAutoRelease output = obs_output_create("rtmp_output", outName, nullptr, nullptr);
@@ -191,7 +220,9 @@ void EmpireMultistreamDock::StartAll()
 		obs_output_set_reconnect_settings(output, 20, 2);
 
 		if (obs_output_start(output)) {
-			SetStatus(i, QStringLiteral("LIVE"), "#46D369");
+			SetStatus(i, custom ? QStringLiteral("LIVE (%1 kb/s)").arg(customBitrate)
+					    : QStringLiteral("LIVE"),
+				  "#46D369");
 			liveOutputs.push_back(std::move(output));
 			liveServices.push_back(std::move(service));
 		} else {
@@ -209,6 +240,7 @@ void EmpireMultistreamDock::StopAll()
 		obs_output_stop(o);
 	liveOutputs.clear();
 	liveServices.clear();
+	liveEncoders.clear();
 
 	for (int i = 0; i < NUM_DESTS; i++)
 		SetStatus(i, QStringLiteral("idle"), "#808080");

@@ -33,6 +33,7 @@ class EmpireMultistreamDock : public QFrame {
 		QCheckBox *enable = nullptr;
 		QLineEdit *url = nullptr;
 		QLineEdit *key = nullptr;
+		QLineEdit *bitrate = nullptr; /* blank = share the main encoder */
 		QLabel *status = nullptr;
 	};
 	DestRow rows[NUM_DESTS];
@@ -42,6 +43,7 @@ class EmpireMultistreamDock : public QFrame {
 
 	std::vector<OBSOutputAutoRelease> liveOutputs;
 	std::vector<OBSServiceAutoRelease> liveServices;
+	std::vector<OBSEncoderAutoRelease> liveEncoders; /* dedicated per-destination encoders */
 
 	void Save();
 	void Load();
