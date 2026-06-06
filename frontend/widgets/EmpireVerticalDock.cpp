@@ -11,6 +11,7 @@
 
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QLineEdit>
 #include <QPushButton>
 #include <QVBoxLayout>
 
@@ -22,7 +23,7 @@
 #define VERTICAL_W 1080
 #define VERTICAL_H 1920
 
-/* Prefer a hardware encoder (NVENC/QSV/AMF) for the vertical recording to spare
+/* Prefer a hardware encoder (NVENC/QSV/AMF) for the vertical output to spare
  * CPU; fall back to x264. */
 static const char *empire_pick_video_encoder()
 {
@@ -41,14 +42,13 @@ EmpireVerticalDock::EmpireVerticalDock(QWidget *parent) : QFrame(parent)
 	layout->setContentsMargins(0, 0, 0, 0);
 	layout->setSpacing(0);
 
-	/* Top toolbar: caption + Fill/Fit toggle + Record. */
+	/* Row 1: caption + Fill/Fit toggle. */
 	QHBoxLayout *bar = new QHBoxLayout();
-	bar->setContentsMargins(6, 4, 6, 4);
+	bar->setContentsMargins(6, 4, 6, 2);
 	QLabel *caption = new QLabel(QStringLiteral("Vertical 9:16 — mirrors program"), this);
 	caption->setStyleSheet("color:#B3B3B3;");
 	bar->addWidget(caption);
 	bar->addStretch();
-
 	modeButton = new QPushButton(this);
 	modeButton->setStyleSheet("background-color:#333; color:white; font-weight:bold; padding:2px 10px;");
 	connect(modeButton, &QPushButton::clicked, this, [this]() {
@@ -57,12 +57,28 @@ EmpireVerticalDock::EmpireVerticalDock(QWidget *parent) : QFrame(parent)
 		UpdateModeButton();
 	});
 	bar->addWidget(modeButton);
+	layout->addLayout(bar);
 
+	/* Row 2: vertical RTMP URL + key + Go Live + Record. */
+	QHBoxLayout *ctl = new QHBoxLayout();
+	ctl->setContentsMargins(6, 0, 6, 4);
+	ctl->setSpacing(6);
+	urlEdit = new QLineEdit(this);
+	urlEdit->setPlaceholderText(QStringLiteral("rtmp://…  vertical RTMP URL"));
+	keyEdit = new QLineEdit(this);
+	keyEdit->setEchoMode(QLineEdit::Password);
+	keyEdit->setPlaceholderText(QStringLiteral("stream key"));
+	connect(urlEdit, &QLineEdit::editingFinished, this, [this]() { SaveConfig(); });
+	connect(keyEdit, &QLineEdit::editingFinished, this, [this]() { SaveConfig(); });
+	streamButton = new QPushButton(this);
+	connect(streamButton, &QPushButton::clicked, this, [this]() { ToggleStreaming(); });
 	recordButton = new QPushButton(this);
 	connect(recordButton, &QPushButton::clicked, this, [this]() { ToggleRecording(); });
-	bar->addWidget(recordButton);
-
-	layout->addLayout(bar);
+	ctl->addWidget(urlEdit, 3);
+	ctl->addWidget(keyEdit, 2);
+	ctl->addWidget(streamButton);
+	ctl->addWidget(recordButton);
+	layout->addLayout(ctl);
 
 	/* Private 9:16 canvas, inheriting the main video timing/format. */
 	obs_video_info ovi = {};
@@ -87,8 +103,10 @@ EmpireVerticalDock::EmpireVerticalDock(QWidget *parent) : QFrame(parent)
 	};
 	connect(display, &OBSQTDisplay::DisplayCreated, this, addDraw);
 
+	LoadConfig();
 	UpdateModeButton();
 	UpdateRecordButton();
+	UpdateStreamButton();
 	SyncToCurrentScene();
 	obs_frontend_add_event_callback(OBSFrontendEvent, this);
 
@@ -99,12 +117,19 @@ EmpireVerticalDock::~EmpireVerticalDock()
 {
 	obs_frontend_remove_event_callback(OBSFrontendEvent, this);
 
-	/* Stop the recording (it uses the canvas video) before any teardown. */
+	/* Stop the recording + stream (they use the canvas video) before any teardown. */
 	if (recordOutput) {
 		obs_output_force_stop(recordOutput);
 		recordOutput = nullptr;
 		recordVEnc = nullptr;
 		recordAEnc = nullptr;
+	}
+	if (streamOutput) {
+		obs_output_force_stop(streamOutput);
+		streamOutput = nullptr;
+		streamVEnc = nullptr;
+		streamAEnc = nullptr;
+		streamService = nullptr;
 	}
 
 	/* Remove the draw callback BEFORE tearing down the canvas so the
@@ -178,6 +203,16 @@ void EmpireVerticalDock::UpdateRecordButton()
 			  : "background-color:#46D369; color:#141414; font-weight:bold; padding:2px 10px;");
 }
 
+void EmpireVerticalDock::UpdateStreamButton()
+{
+	if (!streamButton)
+		return;
+	streamButton->setText(streaming ? QStringLiteral("Stop ◉ LIVE") : QStringLiteral("Go Live 9:16"));
+	streamButton->setStyleSheet(
+		streaming ? "background-color:#B20710; color:white; font-weight:bold; padding:2px 10px;"
+			  : "background-color:#E50914; color:white; font-weight:bold; padding:2px 10px;");
+}
+
 void EmpireVerticalDock::ToggleRecording()
 {
 	if (recording && recordOutput) {
@@ -247,6 +282,99 @@ void EmpireVerticalDock::StartRecording()
 		recordAEnc = nullptr;
 		recording = false;
 	}
+}
+
+void EmpireVerticalDock::ToggleStreaming()
+{
+	if (streaming && streamOutput) {
+		obs_output_stop(streamOutput);
+		streaming = false;
+	} else {
+		StartStreaming();
+	}
+	UpdateStreamButton();
+}
+
+void EmpireVerticalDock::StartStreaming()
+{
+	if (!canvas)
+		return;
+	video_t *vid = obs_canvas_get_video(canvas);
+	if (!vid)
+		return;
+
+	const std::string url = urlEdit->text().trimmed().toUtf8().constData();
+	const std::string key = keyEdit->text().trimmed().toUtf8().constData();
+	if (url.empty() || key.empty()) {
+		blog(LOG_WARNING, "[Empire Vertical] set an RTMP URL + stream key before going live");
+		return;
+	}
+
+	/* Release any previous (already-stopped) output/encoders/service. */
+	streamOutput = nullptr;
+	streamVEnc = nullptr;
+	streamAEnc = nullptr;
+	streamService = nullptr;
+
+	OBSDataAutoRelease vset = obs_data_create();
+	obs_data_set_int(vset, "bitrate", 6000);
+	obs_data_set_string(vset, "rate_control", "CBR");
+	streamVEnc = obs_video_encoder_create(empire_pick_video_encoder(), "empire_vert_stream_venc", vset, nullptr);
+	if (!streamVEnc)
+		streamVEnc = obs_video_encoder_create("obs_x264", "empire_vert_stream_venc", vset, nullptr);
+	obs_encoder_set_video(streamVEnc, vid);
+
+	OBSDataAutoRelease aset = obs_data_create();
+	obs_data_set_int(aset, "bitrate", 160);
+	streamAEnc = obs_audio_encoder_create("ffmpeg_aac", "empire_vert_stream_aenc", aset, 0, nullptr);
+	obs_encoder_set_audio(streamAEnc, obs_get_audio());
+
+	OBSDataAutoRelease svc = obs_data_create();
+	obs_data_set_string(svc, "server", url.c_str());
+	obs_data_set_string(svc, "key", key.c_str());
+	streamService = obs_service_create("rtmp_custom", "empire_vert_service", svc, nullptr);
+
+	streamOutput = obs_output_create("rtmp_output", "empire_vert_stream", nullptr, nullptr);
+	obs_output_set_video_encoder(streamOutput, streamVEnc);
+	obs_output_set_audio_encoder(streamOutput, streamAEnc, 0);
+	obs_output_set_service(streamOutput, streamService);
+	obs_output_set_reconnect_settings(streamOutput, 20, 2);
+
+	if (obs_output_start(streamOutput)) {
+		streaming = true;
+		blog(LOG_INFO, "[Empire Vertical] going live 9:16 to %s", url.c_str());
+	} else {
+		const char *err = obs_output_get_last_error(streamOutput);
+		blog(LOG_WARNING, "[Empire Vertical] stream failed to start: %s", (err && *err) ? err : "unknown");
+		streamOutput = nullptr;
+		streamVEnc = nullptr;
+		streamAEnc = nullptr;
+		streamService = nullptr;
+		streaming = false;
+	}
+}
+
+void EmpireVerticalDock::LoadConfig()
+{
+	config_t *cfg = obs_frontend_get_profile_config();
+	if (!cfg)
+		return;
+	const char *url = config_get_string(cfg, "EmpireVertical", "StreamURL");
+	const char *key = config_get_string(cfg, "EmpireVertical", "StreamKey");
+	if (urlEdit)
+		urlEdit->setText(url ? url : "");
+	if (keyEdit)
+		keyEdit->setText(key ? key : "");
+}
+
+void EmpireVerticalDock::SaveConfig()
+{
+	config_t *cfg = obs_frontend_get_profile_config();
+	if (!cfg)
+		return;
+	config_set_string(cfg, "EmpireVertical", "StreamURL", urlEdit->text().toUtf8().constData());
+	config_set_string(cfg, "EmpireVertical", "StreamKey", keyEdit->text().toUtf8().constData());
+	config_save_safe(cfg, "tmp", nullptr);
 }
 
 void EmpireVerticalDock::OBSFrontendEvent(enum obs_frontend_event event, void *ptr)
