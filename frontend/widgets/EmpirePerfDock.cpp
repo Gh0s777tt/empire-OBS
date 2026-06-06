@@ -2,6 +2,7 @@
 
 #include <obs-frontend-api.h>
 
+#include <QLabel>
 #include <QPainter>
 #include <QPainterPath>
 #include <QVBoxLayout>
@@ -139,6 +140,13 @@ EmpirePerfDock::EmpirePerfDock(QWidget *parent) : QFrame(parent), cpu_info(os_cp
 	layout->setContentsMargins(6, 6, 6, 6);
 	layout->setSpacing(6);
 
+	healthBanner = new QLabel(this);
+	healthBanner->setAlignment(Qt::AlignCenter);
+	healthBanner->setMinimumHeight(28);
+	healthBanner->setText(QStringLiteral("Stream health: idle (not streaming)"));
+	healthBanner->setStyleSheet("color:#808080; background:#181818; border-radius:6px; font-weight:bold;");
+	layout->addWidget(healthBanner);
+
 	cpuGraph = new EmpireGraph(QStringLiteral("CPU"), QColor(0xE5, 0x09, 0x14), QStringLiteral("%"), 100.0, this);
 	fpsGraph = new EmpireGraph(QStringLiteral("FPS"), QColor(0x46, 0xD3, 0x69), QString(), 0.0, this);
 	renderGraph =
@@ -201,6 +209,8 @@ void EmpirePerfDock::Update()
 
 	/* Streaming-output health: dropped frames % + outgoing bitrate */
 	OBSOutputAutoRelease strOutput = obs_frontend_get_streaming_output();
+	double droppedPct = 0.0;
+	const bool streaming = (bool)strOutput;
 	if (strOutput) {
 		int total = obs_output_get_total_frames(strOutput);
 		int dropped = obs_output_get_frames_dropped(strOutput);
@@ -210,7 +220,8 @@ void EmpirePerfDock::Update()
 		}
 		const int t = total - first_total;
 		const int d = dropped - first_dropped;
-		droppedGraph->addSample(t > 0 ? (double)d / (double)t * 100.0 : 0.0);
+		droppedPct = t > 0 ? (double)d / (double)t * 100.0 : 0.0;
+		droppedGraph->addSample(droppedPct);
 
 		const uint64_t bytes = obs_output_get_total_bytes(strOutput);
 		const uint64_t now = os_gettime_ns();
@@ -228,6 +239,29 @@ void EmpirePerfDock::Update()
 		first_dropped = 0;
 		lastBytes = 0;
 		lastBytesTime = 0;
+	}
+
+	/* Stream-health banner — worst of dropped (network) and missed (render). */
+	if (!streaming) {
+		healthBanner->setText(QStringLiteral("Stream health: idle (not streaming)"));
+		healthBanner->setStyleSheet("color:#808080; background:#181818; border-radius:6px; font-weight:bold;");
+	} else {
+		const double worst = std::max(droppedPct, missedPct);
+		if (worst >= 5.0) {
+			healthBanner->setText(QStringLiteral("Stream health: CRITICAL - losing frames (%1%)")
+						      .arg(QString::number(worst, 'f', 1)));
+			healthBanner->setStyleSheet(
+				"color:white; background:#B20710; border-radius:6px; font-weight:bold;");
+		} else if (worst >= 1.5) {
+			healthBanner->setText(
+				QStringLiteral("Stream health: WARNING (%1%)").arg(QString::number(worst, 'f', 1)));
+			healthBanner->setStyleSheet(
+				"color:#141414; background:#EABC48; border-radius:6px; font-weight:bold;");
+		} else {
+			healthBanner->setText(QStringLiteral("Stream health: GOOD"));
+			healthBanner->setStyleSheet(
+				"color:#141414; background:#46D369; border-radius:6px; font-weight:bold;");
+		}
 	}
 }
 

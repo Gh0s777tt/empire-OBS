@@ -19,6 +19,19 @@
 
 #define MS_SECTION "EmpireMultistream"
 
+/* Pick the best available H.264 encoder for a dedicated per-destination stream:
+ * prefer a hardware encoder (NVENC/QSV/AMF) to spare CPU; fall back to x264. */
+static const char *empire_pick_video_encoder()
+{
+	static const char *prefs[] = {"obs_nvenc", "jim_nvenc",        "ffmpeg_nvenc", "obs_qsv11_v2",
+				      "obs_qsv11", "h264_texture_amf", "amd_amf_h264"};
+	for (const char *id : prefs) {
+		if (obs_encoder_get_display_name(id))
+			return id;
+	}
+	return "obs_x264";
+}
+
 EmpireMultistreamDock::EmpireMultistreamDock(QWidget *parent) : QFrame(parent)
 {
 	QVBoxLayout *layout = new QVBoxLayout(this);
@@ -29,10 +42,11 @@ EmpireMultistreamDock::EmpireMultistreamDock(QWidget *parent) : QFrame(parent)
 	title->setStyleSheet("font-weight: bold; color: #E50914;");
 	layout->addWidget(title);
 
-	QLabel *hint = new QLabel(QStringLiteral("Each enabled destination streams alongside your main stream. Leave "
-						 "kb/s blank to share the main encoder (no extra GPU/CPU); set a "
-						 "value to give that destination its own bitrate (extra encode)."),
-				  this);
+	QLabel *hint =
+		new QLabel(QStringLiteral("Each enabled destination streams alongside your main stream. Leave "
+					  "kb/s blank to share the main encoder (no extra GPU/CPU); set a "
+					  "value to give it its own bitrate (uses a GPU encoder when available)."),
+			   this);
 	hint->setWordWrap(true);
 	hint->setStyleSheet("color: #B3B3B3;");
 	layout->addWidget(hint);
@@ -203,8 +217,11 @@ void EmpireMultistreamDock::StartAll()
 			obs_data_set_string(encSettings, "rate_control", "CBR");
 			char encName[64];
 			snprintf(encName, sizeof(encName), "empire_venc_%d", i + 1);
+			const char *encId = empire_pick_video_encoder();
 			OBSEncoderAutoRelease dedicated =
-				obs_video_encoder_create("obs_x264", encName, encSettings, nullptr);
+				obs_video_encoder_create(encId, encName, encSettings, nullptr);
+			if (!dedicated)
+				dedicated = obs_video_encoder_create("obs_x264", encName, encSettings, nullptr);
 			obs_encoder_set_video(dedicated, obs_get_video());
 			venc = dedicated;
 			custom = true;

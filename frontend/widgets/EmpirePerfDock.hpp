@@ -27,6 +27,7 @@
 class QPaintEvent;
 class QShowEvent;
 class QHideEvent;
+class QLabel;
 
 /* Lightweight rolling line-graph (no Qt Charts dependency). */
 class EmpireGraph : public QWidget {
@@ -60,6 +61,8 @@ class EmpirePerfDock : public QFrame {
 	EmpireGraph *memGraph = nullptr;
 	EmpireGraph *droppedGraph = nullptr;
 	EmpireGraph *bitrateGraph = nullptr;
+
+	QLabel *healthBanner = nullptr;
 
 	os_cpu_usage_info_t *cpu_info = nullptr;
 	QTimer timer;
