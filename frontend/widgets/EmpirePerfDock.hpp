@@ -58,12 +58,20 @@ class EmpirePerfDock : public QFrame {
 	EmpireGraph *renderGraph = nullptr;
 	EmpireGraph *missedGraph = nullptr;
 	EmpireGraph *memGraph = nullptr;
+	EmpireGraph *droppedGraph = nullptr;
+	EmpireGraph *bitrateGraph = nullptr;
 
 	os_cpu_usage_info_t *cpu_info = nullptr;
 	QTimer timer;
 
 	uint32_t first_rendered = 0xFFFFFFFF;
 	uint32_t first_lagged = 0xFFFFFFFF;
+
+	/* streaming-output health tracking */
+	int first_total = 0;
+	int first_dropped = 0;
+	uint64_t lastBytes = 0;
+	uint64_t lastBytesTime = 0;
 
 	void Update();
 

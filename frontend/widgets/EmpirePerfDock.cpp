@@ -147,12 +147,18 @@ EmpirePerfDock::EmpirePerfDock(QWidget *parent) : QFrame(parent), cpu_info(os_cp
 				     100.0, this);
 	memGraph =
 		new EmpireGraph(QStringLiteral("Memory"), QColor(0x99, 0x7F, 0xDC), QStringLiteral("MB"), 0.0, this);
+	droppedGraph = new EmpireGraph(QStringLiteral("Dropped frames"), QColor(0xE5, 0x09, 0x14),
+				       QStringLiteral("%"), 100.0, this);
+	bitrateGraph = new EmpireGraph(QStringLiteral("Stream bitrate"), QColor(0x16, 0xB1, 0xF3),
+				       QStringLiteral("kb/s"), 0.0, this);
 
 	layout->addWidget(cpuGraph);
 	layout->addWidget(fpsGraph);
 	layout->addWidget(renderGraph);
 	layout->addWidget(missedGraph);
 	layout->addWidget(memGraph);
+	layout->addWidget(droppedGraph);
+	layout->addWidget(bitrateGraph);
 	layout->addStretch();
 
 	connect(&timer, &QTimer::timeout, this, &EmpirePerfDock::Update);
@@ -193,6 +199,37 @@ void EmpirePerfDock::Update()
 	const uint32_t lagged = total_lagged - first_lagged;
 	const double missedPct = rendered ? (double)lagged / (double)rendered * 100.0 : 0.0;
 	missedGraph->addSample(missedPct);
+
+	/* Streaming-output health: dropped frames % + outgoing bitrate */
+	OBSOutputAutoRelease strOutput = obs_frontend_get_streaming_output();
+	if (strOutput) {
+		int total = obs_output_get_total_frames(strOutput);
+		int dropped = obs_output_get_frames_dropped(strOutput);
+		if (total < first_total || dropped < first_dropped) {
+			first_total = total;
+			first_dropped = dropped;
+		}
+		const int t = total - first_total;
+		const int d = dropped - first_dropped;
+		droppedGraph->addSample(t > 0 ? (double)d / (double)t * 100.0 : 0.0);
+
+		const uint64_t bytes = obs_output_get_total_bytes(strOutput);
+		const uint64_t now = os_gettime_ns();
+		if (lastBytesTime != 0 && now > lastBytesTime) {
+			const double secs = (double)(now - lastBytesTime) / 1000000000.0;
+			const uint64_t deltaBytes = (bytes >= lastBytes) ? (bytes - lastBytes) : 0;
+			bitrateGraph->addSample(secs > 0.0 ? (double)(deltaBytes * 8) / secs / 1000.0 : 0.0);
+		}
+		lastBytes = bytes;
+		lastBytesTime = now;
+	} else {
+		droppedGraph->addSample(0.0);
+		bitrateGraph->addSample(0.0);
+		first_total = 0;
+		first_dropped = 0;
+		lastBytes = 0;
+		lastBytesTime = 0;
+	}
 }
 
 void EmpirePerfDock::showEvent(QShowEvent *)
