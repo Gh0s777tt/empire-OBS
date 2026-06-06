@@ -177,7 +177,10 @@ void EmpireVerticalDock::RenderVertical(void *data, uint32_t, uint32_t)
 	gs_ortho(0.0f, float(ovi.base_width), 0.0f, float(ovi.base_height), -100.0f, 100.0f);
 	gs_set_viewport(x, y, cx, cy);
 
-	obs_render_canvas_texture(canvas);
+	/* Render the canvas's sources directly (obs_view_render) rather than its
+	 * composed texture — a private canvas isn't composited by the core video
+	 * loop, so its texture would be empty/garbage. */
+	obs_canvas_render(canvas);
 
 	gs_projection_pop();
 	gs_viewport_pop();
