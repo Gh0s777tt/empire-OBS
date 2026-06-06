@@ -47,6 +47,7 @@
 #include <widgets/AudioMixer.hpp>
 #include <widgets/EmpireMultistreamDock.hpp>
 #include <widgets/EmpirePerfDock.hpp>
+#include <widgets/EmpireVerticalDock.hpp>
 #include <widgets/OBSProjector.hpp>
 
 #include <OBSStudioAPI.hpp>
@@ -1373,6 +1374,9 @@ void OBSBasic::OnFirstLoad()
 
 	/* Empire-OBS: register the multistream destinations dock (Tier B #3). */
 	obs_frontend_add_dock_by_id("empire_multistream_dock", "Empire Multistream", new EmpireMultistreamDock());
+
+	/* Empire-OBS: register the vertical 9:16 preview dock (#6). */
+	obs_frontend_add_dock_by_id("empire_vertical_dock", "Empire Vertical 9:16", new EmpireVerticalDock());
 
 #ifdef WHATSNEW_ENABLED
 	/* Attempt to load init screen if available */

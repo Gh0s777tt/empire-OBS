@@ -18,6 +18,8 @@ target_sources(
     widgets/EmpireMultistreamDock.hpp
     widgets/EmpirePerfDock.cpp
     widgets/EmpirePerfDock.hpp
+    widgets/EmpireVerticalDock.cpp
+    widgets/EmpireVerticalDock.hpp
     widgets/OBSBasic.cpp
     widgets/OBSBasic.hpp
     widgets/OBSBasic_Browser.cpp
