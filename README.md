@@ -179,7 +179,7 @@ cmake --build --preset empire-windows-x64
 .\build_x64\rundir\RelWithDebInfo\bin\64bit\obs64.exe --portable
 ```
 
-📖 Full build notes, gotchas and the VS‑2026 fixes are in the **[Wiki → Building](https://github.com/Gh0s777tt/empire-OBS/wiki/Building)**.
+📖 Full build notes, gotchas and the VS‑2026 fixes are in the **[Wiki → Building](wiki/Building.md)**.
 
 ---
 
@@ -199,7 +199,7 @@ This is a **private** repository hardened against unauthorized changes:
 - 🔑 **Secret‑scanning push protection** (where available on the plan)
 - 🔐 Private visibility · forking restricted
 
-Report vulnerabilities privately — see **[Wiki → Security](https://github.com/Gh0s777tt/empire-OBS/wiki/Security)**.
+Report vulnerabilities privately — see **[Wiki → Security](wiki/Security.md)**.
 
 ---
 
