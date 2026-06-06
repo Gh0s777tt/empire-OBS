@@ -191,7 +191,7 @@ void OBSBasicSettings::on_choose1_clicked()
 	ui->colorPreset->setCurrentIndex(ui->colorPreset->count() - 1);
 	ui->colorPreset->blockSignals(block);
 
-	A11yChanged();
+	A11yChanged(nullptr);
 
 	UpdateA11yColors();
 }
@@ -210,7 +210,7 @@ void OBSBasicSettings::on_choose2_clicked()
 	ui->colorPreset->setCurrentIndex(ui->colorPreset->count() - 1);
 	ui->colorPreset->blockSignals(block);
 
-	A11yChanged();
+	A11yChanged(nullptr);
 
 	UpdateA11yColors();
 }
@@ -229,7 +229,7 @@ void OBSBasicSettings::on_choose3_clicked()
 	ui->colorPreset->setCurrentIndex(ui->colorPreset->count() - 1);
 	ui->colorPreset->blockSignals(block);
 
-	A11yChanged();
+	A11yChanged(nullptr);
 
 	UpdateA11yColors();
 }
@@ -248,7 +248,7 @@ void OBSBasicSettings::on_choose4_clicked()
 	ui->colorPreset->setCurrentIndex(ui->colorPreset->count() - 1);
 	ui->colorPreset->blockSignals(block);
 
-	A11yChanged();
+	A11yChanged(nullptr);
 
 	UpdateA11yColors();
 }
@@ -267,7 +267,7 @@ void OBSBasicSettings::on_choose5_clicked()
 	ui->colorPreset->setCurrentIndex(ui->colorPreset->count() - 1);
 	ui->colorPreset->blockSignals(block);
 
-	A11yChanged();
+	A11yChanged(nullptr);
 
 	UpdateA11yColors();
 }
@@ -286,7 +286,7 @@ void OBSBasicSettings::on_choose6_clicked()
 	ui->colorPreset->setCurrentIndex(ui->colorPreset->count() - 1);
 	ui->colorPreset->blockSignals(block);
 
-	A11yChanged();
+	A11yChanged(nullptr);
 
 	UpdateA11yColors();
 }
@@ -306,7 +306,7 @@ void OBSBasicSettings::on_choose7_clicked()
 	ui->colorPreset->setCurrentIndex(ui->colorPreset->count() - 1);
 	ui->colorPreset->blockSignals(block);
 
-	A11yChanged();
+	A11yChanged(nullptr);
 
 	UpdateA11yColors();
 }
@@ -326,7 +326,7 @@ void OBSBasicSettings::on_choose8_clicked()
 	ui->colorPreset->setCurrentIndex(ui->colorPreset->count() - 1);
 	ui->colorPreset->blockSignals(block);
 
-	A11yChanged();
+	A11yChanged(nullptr);
 
 	UpdateA11yColors();
 }
@@ -345,7 +345,7 @@ void OBSBasicSettings::on_choose9_clicked()
 	ui->colorPreset->setCurrentIndex(ui->colorPreset->count() - 1);
 	ui->colorPreset->blockSignals(block);
 
-	A11yChanged();
+	A11yChanged(nullptr);
 
 	UpdateA11yColors();
 }

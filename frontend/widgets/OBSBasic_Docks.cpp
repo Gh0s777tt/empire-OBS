@@ -205,7 +205,7 @@ bool OBSBasic::IsDockObjectNameUsed(const QString &name)
 void OBSBasic::AddCustomDockWidget(QDockWidget *dock)
 {
 	// Prevent the object name from being changed
-	connect(dock, &QObject::objectNameChanged, this, &OBSBasic::RepairCustomExtraDockName);
+	connect(dock, &QObject::objectNameChanged, this, [this, dock]() { RepairCustomExtraDockName(dock); });
 
 	bool lock = ui->lockDocks->isChecked();
 	QDockWidget::DockWidgetFeatures features =
@@ -235,9 +235,8 @@ void OBSBasic::setDockCornersVertical(bool vertical)
 	}
 }
 
-void OBSBasic::RepairCustomExtraDockName()
+void OBSBasic::RepairCustomExtraDockName(QDockWidget *dock)
 {
-	QDockWidget *dock = reinterpret_cast<QDockWidget *>(sender());
 	int idx = extraCustomDocks.indexOf(dock);
 	QSignalBlocker block(dock);
 
