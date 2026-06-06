@@ -41,6 +41,6 @@ jobs:
           if [ "$clean" -eq 1 ]; then
             echo "✅ Empire C++ sources are clang-format clean." >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "⚠️ Some Empire sources have formatting suggestions (see annotations)." >> "$GITHUB_STEP_SUMMARY"
+            echo "❌ Some Empire sources are not clang-format clean (see annotations)." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
           fi
-          exit 0

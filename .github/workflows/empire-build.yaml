@@ -41,6 +41,14 @@ jobs:
         shell: pwsh
         run: cmake --version
 
+      - name: 💾 Cache dependencies (Qt6 + CEF + obs-deps)
+        uses: actions/cache@v4
+        with:
+          path: .deps
+          key: deps-windows-x64-${{ hashFiles('CMakePresets.json') }}
+          restore-keys: |
+            deps-windows-x64-
+
       - name: ⚙️ Configure (downloads Qt6 + CEF + obs-deps)
         shell: pwsh
         run: cmake --preset windows-x64
