@@ -1,0 +1,331 @@
+{
+    "name":  "Empire - Podcast",
+    "DesktopAudioDevice1":  {
+                                "prev_ver":  536936450,
+                                "name":  "Urządzenie audio",
+                                "uuid":  "539da543-b229-41f3-a97d-deadbcac44c3",
+                                "id":  "wasapi_output_capture",
+                                "versioned_id":  "wasapi_output_capture",
+                                "settings":  {
+                                                 "device_id":  "default"
+                                             },
+                                "mixers":  255,
+                                "sync":  0,
+                                "flags":  0,
+                                "volume":  1.0,
+                                "balance":  0.5,
+                                "enabled":  true,
+                                "muted":  false,
+                                "push-to-mute":  false,
+                                "push-to-mute-delay":  0,
+                                "push-to-talk":  false,
+                                "push-to-talk-delay":  0,
+                                "hotkeys":  {
+                                                "libobs.mute":  [
+
+                                                                ],
+                                                "libobs.unmute":  [
+
+                                                                  ],
+                                                "libobs.push-to-mute":  [
+
+                                                                        ],
+                                                "libobs.push-to-talk":  [
+
+                                                                        ]
+                                            },
+                                "deinterlace_mode":  0,
+                                "deinterlace_field_order":  0,
+                                "monitoring_type":  0,
+                                "private_settings":  {
+
+                                                     }
+                            },
+    "AuxAudioDevice1":  {
+                            "prev_ver":  536936450,
+                            "name":  "Mikrofon/Wejście liniowe",
+                            "uuid":  "6d48efe7-a31e-42e9-8be4-7fb37f93df08",
+                            "id":  "wasapi_input_capture",
+                            "versioned_id":  "wasapi_input_capture",
+                            "settings":  {
+                                             "device_id":  "default"
+                                         },
+                            "mixers":  255,
+                            "sync":  0,
+                            "flags":  0,
+                            "volume":  1.0,
+                            "balance":  0.5,
+                            "enabled":  true,
+                            "muted":  false,
+                            "push-to-mute":  false,
+                            "push-to-mute-delay":  0,
+                            "push-to-talk":  false,
+                            "push-to-talk-delay":  0,
+                            "hotkeys":  {
+                                            "libobs.mute":  [
+
+                                                            ],
+                                            "libobs.unmute":  [
+
+                                                              ],
+                                            "libobs.push-to-mute":  [
+
+                                                                    ],
+                                            "libobs.push-to-talk":  [
+
+                                                                    ]
+                                        },
+                            "deinterlace_mode":  0,
+                            "deinterlace_field_order":  0,
+                            "monitoring_type":  0,
+                            "private_settings":  {
+
+                                                 }
+                        },
+    "sources":  [
+                    {
+                        "prev_ver":  536936450,
+                        "name":  "Intro",
+                        "uuid":  "fe5d4aa3-42cc-45ba-8321-fed279035121",
+                        "id":  "scene",
+                        "versioned_id":  "scene",
+                        "settings":  {
+                                         "id_counter":  0,
+                                         "custom_size":  false,
+                                         "items":  [
+
+                                                   ]
+                                     },
+                        "mixers":  0,
+                        "sync":  0,
+                        "flags":  0,
+                        "volume":  1.0,
+                        "balance":  0.5,
+                        "enabled":  true,
+                        "muted":  false,
+                        "push-to-mute":  false,
+                        "push-to-mute-delay":  0,
+                        "push-to-talk":  false,
+                        "push-to-talk-delay":  0,
+                        "hotkeys":  {
+                                        "OBSBasic.SelectScene":  [
+
+                                                                 ]
+                                    },
+                        "deinterlace_mode":  0,
+                        "deinterlace_field_order":  0,
+                        "monitoring_type":  0,
+                        "canvas_uuid":  "6c69626f-6273-4c00-9d88-c5136d61696e",
+                        "private_settings":  {
+
+                                             }
+                    },
+                    {
+                        "prev_ver":  536936450,
+                        "name":  "Podcast",
+                        "uuid":  "9e709954-f01d-495a-825b-ab8f7ba7606a",
+                        "id":  "scene",
+                        "versioned_id":  "scene",
+                        "settings":  {
+                                         "id_counter":  0,
+                                         "custom_size":  false,
+                                         "items":  [
+
+                                                   ]
+                                     },
+                        "mixers":  0,
+                        "sync":  0,
+                        "flags":  0,
+                        "volume":  1.0,
+                        "balance":  0.5,
+                        "enabled":  true,
+                        "muted":  false,
+                        "push-to-mute":  false,
+                        "push-to-mute-delay":  0,
+                        "push-to-talk":  false,
+                        "push-to-talk-delay":  0,
+                        "hotkeys":  {
+                                        "OBSBasic.SelectScene":  [
+
+                                                                 ]
+                                    },
+                        "deinterlace_mode":  0,
+                        "deinterlace_field_order":  0,
+                        "monitoring_type":  0,
+                        "canvas_uuid":  "6c69626f-6273-4c00-9d88-c5136d61696e",
+                        "private_settings":  {
+
+                                             }
+                    },
+                    {
+                        "prev_ver":  536936450,
+                        "name":  "Screen Share",
+                        "uuid":  "962ae469-6839-42cc-a082-0975d1839802",
+                        "id":  "scene",
+                        "versioned_id":  "scene",
+                        "settings":  {
+                                         "id_counter":  0,
+                                         "custom_size":  false,
+                                         "items":  [
+
+                                                   ]
+                                     },
+                        "mixers":  0,
+                        "sync":  0,
+                        "flags":  0,
+                        "volume":  1.0,
+                        "balance":  0.5,
+                        "enabled":  true,
+                        "muted":  false,
+                        "push-to-mute":  false,
+                        "push-to-mute-delay":  0,
+                        "push-to-talk":  false,
+                        "push-to-talk-delay":  0,
+                        "hotkeys":  {
+                                        "OBSBasic.SelectScene":  [
+
+                                                                 ]
+                                    },
+                        "deinterlace_mode":  0,
+                        "deinterlace_field_order":  0,
+                        "monitoring_type":  0,
+                        "canvas_uuid":  "6c69626f-6273-4c00-9d88-c5136d61696e",
+                        "private_settings":  {
+
+                                             }
+                    },
+                    {
+                        "prev_ver":  536936450,
+                        "name":  "Outro",
+                        "uuid":  "d3b2a798-d452-41c8-9244-7c98bddc1606",
+                        "id":  "scene",
+                        "versioned_id":  "scene",
+                        "settings":  {
+                                         "id_counter":  0,
+                                         "custom_size":  false,
+                                         "items":  [
+
+                                                   ]
+                                     },
+                        "mixers":  0,
+                        "sync":  0,
+                        "flags":  0,
+                        "volume":  1.0,
+                        "balance":  0.5,
+                        "enabled":  true,
+                        "muted":  false,
+                        "push-to-mute":  false,
+                        "push-to-mute-delay":  0,
+                        "push-to-talk":  false,
+                        "push-to-talk-delay":  0,
+                        "hotkeys":  {
+                                        "OBSBasic.SelectScene":  [
+
+                                                                 ]
+                                    },
+                        "deinterlace_mode":  0,
+                        "deinterlace_field_order":  0,
+                        "monitoring_type":  0,
+                        "canvas_uuid":  "6c69626f-6273-4c00-9d88-c5136d61696e",
+                        "private_settings":  {
+
+                                             }
+                    }
+                ],
+    "groups":  [
+
+               ],
+    "scene_order":  [
+                        {
+                            "name":  "Intro"
+                        },
+                        {
+                            "name":  "Podcast"
+                        },
+                        {
+                            "name":  "Screen Share"
+                        },
+                        {
+                            "name":  "Outro"
+                        }
+                    ],
+    "current_scene":  "Podcast",
+    "current_program_scene":  "Podcast",
+    "canvases":  [
+
+                 ],
+    "current_transition":  "Zanikanie",
+    "transition_duration":  300,
+    "transitions":  [
+
+                    ],
+    "quick_transitions":  [
+                              {
+                                  "name":  "Cięcie",
+                                  "duration":  300,
+                                  "hotkeys":  [
+
+                                              ],
+                                  "id":  1,
+                                  "fade_to_black":  false
+                              },
+                              {
+                                  "name":  "Zanikanie",
+                                  "duration":  300,
+                                  "hotkeys":  [
+
+                                              ],
+                                  "id":  2,
+                                  "fade_to_black":  false
+                              },
+                              {
+                                  "name":  "Zanikanie",
+                                  "duration":  300,
+                                  "hotkeys":  [
+
+                                              ],
+                                  "id":  3,
+                                  "fade_to_black":  true
+                              }
+                          ],
+    "saved_projectors":  [
+
+                         ],
+    "preview_locked":  false,
+    "scaling_enabled":  false,
+    "scaling_level":  -10,
+    "scaling_off_x":  0.0,
+    "scaling_off_y":  0.0,
+    "modules":  {
+                    "scripts-tool":  [
+
+                                     ],
+                    "output-timer":  {
+                                         "streamTimerHours":  0,
+                                         "streamTimerMinutes":  0,
+                                         "streamTimerSeconds":  30,
+                                         "recordTimerHours":  0,
+                                         "recordTimerMinutes":  0,
+                                         "recordTimerSeconds":  30,
+                                         "autoStartStreamTimer":  false,
+                                         "autoStartRecordTimer":  false,
+                                         "pauseRecordTimer":  true
+                                     },
+                    "auto-scene-switcher":  {
+                                                "interval":  300,
+                                                "non_matching_scene":  "",
+                                                "switch_if_not_matching":  false,
+                                                "active":  false,
+                                                "switches":  [
+
+                                                             ]
+                                            },
+                    "captions":  {
+                                     "source":  "",
+                                     "enabled":  false,
+                                     "lang_id":  1045,
+                                     "provider":  "mssapi"
+                                 }
+                },
+    "version":  2
+}
