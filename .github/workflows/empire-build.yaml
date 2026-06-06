@@ -1,9 +1,9 @@
 name: 🎬 Empire Build
 
-# Builds Empire-OBS on a Windows runner and uploads a portable build artifact.
-# Runs on demand (Actions tab → Run workflow) and on version tags (v*).
-# Uses the stock `windows-x64` preset (Visual Studio 2022), which matches the
-# GitHub-hosted runner — the VS-2026 fixes in this fork are harmless on VS 2022.
+# Builds Empire-OBS on Windows, packages it (CPack, the OBS way), uploads the
+# artifact, and — on version tags (v*) — publishes a GitHub Release.
+# Uses the stock `windows-x64` preset (Visual Studio 2022 on the runner); the
+# fork's VS-2026 build fixes are harmless there.
 
 on:
   workflow_dispatch:
@@ -12,7 +12,7 @@ on:
       - "v*"
 
 permissions:
-  contents: read
+  contents: write # required to create releases
 
 concurrency:
   group: empire-build-${{ github.ref }}
@@ -23,7 +23,7 @@ jobs:
     name: Build · Windows x64
     runs-on: windows-2022
     steps:
-      - name: 📥 Checkout (with submodules + full history)
+      - name: 📥 Checkout (submodules + full history)
         uses: actions/checkout@v4
         with:
           submodules: recursive
@@ -31,18 +31,15 @@ jobs:
 
       - name: 🏷️ Fetch OBS version tags
         shell: pwsh
-        # versionconfig.cmake derives the version from `git describe --tags`;
-        # a shallow checkout has no tags, so fetch them from upstream OBS.
+        # versionconfig.cmake derives the version from `git describe --tags`.
         run: |
           git remote add upstream https://github.com/obsproject/obs-studio.git
           git fetch --tags --quiet upstream
           Write-Host "Derived version: $(git describe --always --tags)"
 
-      - name: 🛠️ Show toolchain
+      - name: 🛠️ Toolchain
         shell: pwsh
-        run: |
-          cmake --version
-          Write-Host "Runner: $env:RUNNER_OS"
+        run: cmake --version
 
       - name: ⚙️ Configure (downloads Qt6 + CEF + obs-deps)
         shell: pwsh
@@ -52,17 +49,40 @@ jobs:
         shell: pwsh
         run: cmake --build --preset windows-x64
 
-      - name: 📦 Package portable build
+      - name: 📦 Package (CPack ZIP, with fallback)
+        id: pkg
         shell: pwsh
         run: |
-          $rundir = "build_x64/rundir/RelWithDebInfo"
-          if (-not (Test-Path $rundir)) { throw "rundir not found: $rundir" }
-          Compress-Archive -Path "$rundir/*" -DestinationPath "empire-obs-portable-x64.zip" -Force
-          Write-Host "Packaged: empire-obs-portable-x64.zip"
+          Push-Location build_x64
+          try { cpack -C RelWithDebInfo } catch { Write-Warning "cpack failed: $_" }
+          $zip = Get-ChildItem -Filter "obs-studio-*-windows-x64.zip" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $zip) {
+            Write-Host "CPack zip not found — falling back to rundir archive."
+            Compress-Archive -Path "rundir/RelWithDebInfo/*" -DestinationPath "obs-studio-portable-windows-x64.zip" -Force
+            $zip = Get-Item "obs-studio-portable-windows-x64.zip"
+          }
+          $ver = (git describe --always --tags)
+          $out = "empire-obs-$ver-windows-x64.zip"
+          Move-Item $zip.FullName "../$out" -Force
+          Pop-Location
+          "package=$out" >> $env:GITHUB_OUTPUT
+          Write-Host "Packaged: $out"
 
-      - name: ⬆️ Upload artifact
+      - name: ⬆️ Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: empire-obs-portable-x64
-          path: empire-obs-portable-x64.zip
+          name: empire-obs-windows-x64
+          path: ${{ steps.pkg.outputs.package }}
           if-no-files-found: error
+
+      - name: 🚀 Publish GitHub Release (tags only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.pkg.outputs.package }}
+          generate_release_notes: true
+          body: |
+            ## 🎬 Empire-OBS ${{ github.ref_name }}
+
+            A cinematic, Netflix-styled fork of OBS Studio.
+            See the [CHANGELOG](https://github.com/Gh0s777tt/empire-OBS/blob/empire/main/CHANGELOG.md) and [Wiki](https://github.com/Gh0s777tt/empire-OBS/wiki).

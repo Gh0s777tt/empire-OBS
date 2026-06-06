@@ -1,0 +1,46 @@
+name: 🧹 Lint
+
+# Informational clang-format check on the Empire-added C++ sources.
+# Non-blocking (reports suggestions) — flip to enforcing once confirmed clean.
+
+on:
+  pull_request:
+  push:
+    branches: [empire/main]
+    paths:
+      - "frontend/widgets/Empire*"
+      - ".github/workflows/lint.yaml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  clang-format:
+    name: clang-format (Empire sources)
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🧹 Check formatting
+        shell: bash
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq clang-format
+          clang-format --version
+          files="frontend/widgets/EmpirePerfDock.cpp frontend/widgets/EmpirePerfDock.hpp frontend/widgets/EmpireMultistreamDock.cpp frontend/widgets/EmpireMultistreamDock.hpp"
+          clean=1
+          for f in $files; do
+            if clang-format --dry-run --Werror "$f" 2>/dev/null; then
+              echo "  ok   $f"
+            else
+              echo "::warning file=$f::needs clang-format"
+              clean=0
+            fi
+          done
+          if [ "$clean" -eq 1 ]; then
+            echo "✅ Empire C++ sources are clang-format clean." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "⚠️ Some Empire sources have formatting suggestions (see annotations)." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit 0

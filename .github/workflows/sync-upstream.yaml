@@ -1,0 +1,54 @@
+name: 🔄 Upstream Sync Check
+
+# Keeps the fork alive: weekly (and on demand) it checks how far the fork is
+# behind obsproject/obs-studio master, and opens/updates a tracking issue.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Mondays 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check-upstream:
+    name: Check upstream OBS
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔎 Compare with upstream master
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -e
+          git remote add upstream https://github.com/obsproject/obs-studio.git
+          git fetch --quiet upstream master
+          base=$(git merge-base HEAD upstream/master)
+          ahead=$(git rev-list --count "$base"..upstream/master)
+
+          echo "### 🔄 Upstream OBS status" >> "$GITHUB_STEP_SUMMARY"
+          echo "Upstream \`master\` is **$ahead** commit(s) ahead of our base." >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$ahead" -eq 0 ]; then
+            echo "✅ Fork is up to date with upstream."
+            exit 0
+          fi
+
+          gh label create upstream-sync --color E50914 --description "Upstream OBS has new commits" --force || true
+
+          title="🔄 Upstream OBS sync available"
+          body=$'Upstream OBS `master` is **'"$ahead"$'** commit(s) ahead of our base.\n\nTo sync:\n```\ngit fetch upstream\ngit merge upstream/master\n```\n\nMost Empire changes live in `frontend` / `data` / `scripts`, so merges stay clean.'
+
+          existing=$(gh issue list --label upstream-sync --state open --json number --jq '.[0].number' 2>/dev/null || echo "")
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$title ($ahead commit(s))" --label upstream-sync --body "$body"
+          fi
