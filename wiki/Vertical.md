@@ -46,6 +46,17 @@ Paste a vertical **RTMP URL + stream key** into the controls row, then click **G
 
 ---
 
+## 🎨 Compose (Custom mode)
+
+Click **Mirror → Custom (edit)** to stop auto‑mirroring and lay out the 9:16 by hand:
+
+- **Drag** the content to pan, **mouse‑wheel** to zoom — reframe the program for vertical (the selected item gets a red outline)
+- **Right‑click → Add source** (Image · Text · Color · Camera · Browser · Media · Display · Window) drops your own source into the 9:16 scene and opens its properties
+- **Right‑click → Properties… / Remove selected** edits or deletes the selected item
+- Click **Custom (edit) → Mirror** to snap back to the auto Fill/Fit mirror
+
+---
+
 ## ⚙️ How it works
 
 ```mermaid
@@ -64,4 +75,5 @@ The vertical canvas is a **private `obs_canvas`** — no libobs core changes. It
 ---
 
 ## 🔜 Coming next
-- A **dedicated** vertical scene you compose independently (own sources, not just a mirror of the program)
+- Persist the custom vertical layout across sessions
+- AI **background removal** — see [Background Removal](Background-Removal.md)

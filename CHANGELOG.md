@@ -13,8 +13,20 @@ Each release carries a sequential **Update #** number.
 
 Planned for the next updates — see [ROADMAP.md](ROADMAP.md).
 
-- 🟢 AI **background removal** (ONNX)
-- 🟢 Dedicated vertical scene (compose 9:16 independently, not just a mirror)
+- 🟢 Persist the custom vertical layout across sessions
+
+---
+
+## 🟥 [v0.5.3] — Vertical Composer &nbsp;·&nbsp; `Update #009` &nbsp;·&nbsp; 2026‑06‑07
+
+> *Compose your 9:16 by hand.*
+
+### ✨ Added
+- **Custom (compose) mode** for the vertical dock — freeze the mirror and lay out the 9:16 by hand: **drag** to move, **mouse‑wheel** to scale, with a red selection outline. `64573ac`
+- **Right‑click → Add source** (Image · Text · Color · Media · Browser · Camera · Display · Window) drops a source into the vertical scene and opens its properties; **Properties… / Remove** act on the selection.
+
+### 📝 Docs
+- **AI background removal** — documented integration of the mature [obs‑backgroundremoval](https://github.com/locaal-ai/obs-backgroundremoval) ONNX plugin → [Background Removal](Background-Removal.md).
 
 ---
 
