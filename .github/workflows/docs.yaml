@@ -1,0 +1,44 @@
+name: 📖 Docs
+
+# Builds the MkDocs (Material, Netflix palette) site from wiki/ and deploys it
+# to the gh-pages branch. Enable Pages (Settings → Pages → branch: gh-pages) to serve it.
+
+on:
+  push:
+    branches: [empire/main]
+    paths:
+      - "wiki/**"
+      - "mkdocs.yml"
+      - ".github/workflows/docs.yaml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: docs
+  cancel-in-progress: true
+
+jobs:
+  build-deploy:
+    name: Build & deploy docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🐍 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: 📦 Install MkDocs Material
+        run: pip install --quiet mkdocs-material
+
+      - name: 🏗️ Build (validate)
+        run: mkdocs build --site-dir _site
+
+      - name: 🚀 Deploy to gh-pages
+        run: mkdocs gh-deploy --force --no-history
