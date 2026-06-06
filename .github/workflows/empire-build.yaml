@@ -23,10 +23,20 @@ jobs:
     name: Build · Windows x64
     runs-on: windows-2022
     steps:
-      - name: 📥 Checkout (with submodules)
+      - name: 📥 Checkout (with submodules + full history)
         uses: actions/checkout@v4
         with:
           submodules: recursive
+          fetch-depth: 0
+
+      - name: 🏷️ Fetch OBS version tags
+        shell: pwsh
+        # versionconfig.cmake derives the version from `git describe --tags`;
+        # a shallow checkout has no tags, so fetch them from upstream OBS.
+        run: |
+          git remote add upstream https://github.com/obsproject/obs-studio.git
+          git fetch --tags --quiet upstream
+          Write-Host "Derived version: $(git describe --always --tags)"
 
       - name: 🛠️ Show toolchain
         shell: pwsh
