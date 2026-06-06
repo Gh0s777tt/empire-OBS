@@ -55,3 +55,5 @@ build-aux/flatpak-github-action-modified-*
 !CHANGELOG.md
 !ROADMAP.md
 !wiki/*.md
+
+!mkdocs.yml

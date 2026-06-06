@@ -1,0 +1,38 @@
+site_name: Empire-OBS
+site_description: A cinematic, Netflix-styled fork of OBS Studio
+docs_dir: wiki
+
+theme:
+  name: material
+  palette:
+    - scheme: slate
+      primary: red
+      accent: red
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.instant
+    - content.code.copy
+    - search.suggest
+
+nav:
+  - 🏠 Home: Home.md
+  - 🏗️ Building: Building.md
+  - 🧩 Architecture: Architecture.md
+  - ✨ Features: Features.md
+  - 📡 Multistream: Multistream.md
+  - 🔒 Security: Security.md
+  - ❓ FAQ: FAQ.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+# _Sidebar.md is the GitHub-Wiki sidebar; MkDocs uses `nav` instead.
+not_in_nav: |
+  _Sidebar.md
