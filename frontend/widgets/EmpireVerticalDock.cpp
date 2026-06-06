@@ -5,7 +5,11 @@
 
 #include <obs-frontend-api.h>
 #include <graphics/graphics.h>
+#include <graphics/vec2.h>
 
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QPushButton>
 #include <QVBoxLayout>
 
 #include "moc_EmpireVerticalDock.cpp"
@@ -17,6 +21,24 @@ EmpireVerticalDock::EmpireVerticalDock(QWidget *parent) : QFrame(parent)
 {
 	QVBoxLayout *layout = new QVBoxLayout(this);
 	layout->setContentsMargins(0, 0, 0, 0);
+	layout->setSpacing(0);
+
+	/* Top toolbar: caption + Fill/Fit toggle. */
+	QHBoxLayout *bar = new QHBoxLayout();
+	bar->setContentsMargins(6, 4, 6, 4);
+	QLabel *caption = new QLabel(QStringLiteral("Vertical 9:16 — mirrors program"), this);
+	caption->setStyleSheet("color:#B3B3B3;");
+	bar->addWidget(caption);
+	bar->addStretch();
+	modeButton = new QPushButton(this);
+	modeButton->setStyleSheet("background-color:#E50914; color:white; font-weight:bold; padding:2px 10px;");
+	connect(modeButton, &QPushButton::clicked, this, [this]() {
+		fillMode = !fillMode;
+		ApplyFraming();
+		UpdateModeButton();
+	});
+	bar->addWidget(modeButton);
+	layout->addLayout(bar);
 
 	/* Private 9:16 canvas, inheriting the main video timing/format. */
 	obs_video_info ovi = {};
@@ -25,16 +47,23 @@ EmpireVerticalDock::EmpireVerticalDock(QWidget *parent) : QFrame(parent)
 	ovi.base_height = VERTICAL_H;
 	ovi.output_width = VERTICAL_W;
 	ovi.output_height = VERTICAL_H;
-	canvas = obs_canvas_create_private("Empire Vertical", &ovi, ACTIVATE);
+	canvas = obs_canvas_create_private("Empire Vertical", &ovi, ACTIVATE | SCENE_REF);
+
+	/* Dedicated vertical scene, set as the canvas program (channel 0). */
+	if (canvas) {
+		vScene = obs_canvas_scene_create(canvas, "Empire Vertical");
+		obs_canvas_set_channel(canvas, 0, obs_scene_get_source(vScene));
+	}
 
 	display = new OBSQTDisplay(this);
-	layout->addWidget(display);
+	layout->addWidget(display, 1);
 
 	auto addDraw = [this](OBSQTDisplay *d) {
 		obs_display_add_draw_callback(d->GetDisplay(), EmpireVerticalDock::RenderVertical, this);
 	};
 	connect(display, &OBSQTDisplay::DisplayCreated, this, addDraw);
 
+	UpdateModeButton();
 	SyncToCurrentScene();
 	obs_frontend_add_event_callback(OBSFrontendEvent, this);
 
@@ -50,23 +79,60 @@ EmpireVerticalDock::~EmpireVerticalDock()
 	if (display && display->GetDisplay())
 		obs_display_remove_draw_callback(display->GetDisplay(), EmpireVerticalDock::RenderVertical, this);
 
+	/* The canvas owns vScene + its items; removing/releasing it frees them. */
 	if (canvas) {
 		obs_canvas_set_channel(canvas, 0, nullptr);
 		obs_canvas_remove(canvas);
 		obs_canvas_release(canvas);
 		canvas = nullptr;
 	}
+	mirrorItem = nullptr;
+	vScene = nullptr;
 }
 
 void EmpireVerticalDock::SyncToCurrentScene()
 {
-	if (!canvas)
+	if (!vScene)
 		return;
 
-	/* Mirror the current program scene into the vertical canvas. */
-	obs_source_t *scene = obs_frontend_get_current_scene();
-	obs_canvas_set_channel(canvas, 0, scene);
-	obs_source_release(scene);
+	/* Replace the mirror item with the current program scene. */
+	if (mirrorItem) {
+		obs_sceneitem_remove(mirrorItem);
+		mirrorItem = nullptr;
+	}
+
+	obs_source_t *prog = obs_frontend_get_current_scene();
+	if (!prog)
+		return;
+
+	mirrorItem = obs_scene_add(vScene, prog);
+	obs_source_release(prog);
+
+	ApplyFraming();
+}
+
+void EmpireVerticalDock::ApplyFraming()
+{
+	if (!mirrorItem)
+		return;
+
+	/* Scale the mirrored program to FILL (crop) or FIT (letterbox) the 9:16 frame. */
+	struct vec2 bounds;
+	vec2_set(&bounds, (float)VERTICAL_W, (float)VERTICAL_H);
+	obs_sceneitem_set_bounds_type(mirrorItem, fillMode ? OBS_BOUNDS_SCALE_OUTER : OBS_BOUNDS_SCALE_INNER);
+	obs_sceneitem_set_bounds_alignment(mirrorItem, OBS_ALIGN_CENTER);
+	obs_sceneitem_set_bounds(mirrorItem, &bounds);
+
+	struct vec2 pos;
+	vec2_set(&pos, (float)VERTICAL_W / 2.0f, (float)VERTICAL_H / 2.0f);
+	obs_sceneitem_set_alignment(mirrorItem, OBS_ALIGN_CENTER);
+	obs_sceneitem_set_pos(mirrorItem, &pos);
+}
+
+void EmpireVerticalDock::UpdateModeButton()
+{
+	if (modeButton)
+		modeButton->setText(fillMode ? QStringLiteral("Fill (crop)") : QStringLiteral("Fit (bars)"));
 }
 
 void EmpireVerticalDock::OBSFrontendEvent(enum obs_frontend_event event, void *ptr)
