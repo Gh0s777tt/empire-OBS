@@ -1,0 +1,83 @@
+# 📦 Changelog
+
+All notable changes to **Empire‑OBS** are documented here.
+Format based on [Keep a Changelog](https://keepachangelog.com/) · versioning is [SemVer](https://semver.org/).
+Each release carries a sequential **Update #** number.
+
+![keep-a-changelog](https://img.shields.io/badge/changelog-Keep_a_Changelog-E50914?style=flat-square&labelColor=141414)
+![semver](https://img.shields.io/badge/SemVer-2.0-141414?style=flat-square&labelColor=E50914)
+
+---
+
+## 🔜 [Unreleased]
+
+Planned for the next updates — see [ROADMAP.md](ROADMAP.md).
+
+- 🟢 Vertical **9:16** output mode
+- 🟢 AI **background removal** (ONNX)
+- 🟢 Scene‑template **auto‑install** for all users
+- 🟢 Multistream **v2** — independent per‑destination encoder settings
+- 🟢 **MkDocs** documentation site + fork **CI** workflow
+
+---
+
+## 🟥 [v0.3.0] — Multistream &nbsp;·&nbsp; `Update #004` &nbsp;·&nbsp; 2026‑06‑06
+
+> *Stream everywhere at once.*
+
+### ✨ Added
+- **Native Multistream dock** — manage up to **3 extra RTMP destinations** in‑app (enable · URL · key · live status). `167cad35`
+- **One‑click “Start all streams”** button + main‑stream status indicator. `cb5f0178`
+- **Multistream Lua script** (`empire-scripts/empire-multistream.lua`) — self‑contained alternative, up to 3 destinations. `2d368a8` `cfeb6a1`
+
+### ⚙️ Technical
+- Extra destinations **share the main stream's encoders** (one encode pass → multiple uploads, no extra GPU/CPU).
+- Outputs start/stop automatically via frontend `STREAMING_STARTED` / `STREAMING_STOPPING` events.
+- Destinations persist to the profile config (`[EmpireMultistream]`).
+
+---
+
+## 🟥 [v0.2.0] — Creator Tools &nbsp;·&nbsp; `Update #003` &nbsp;·&nbsp; 2026‑06‑06
+
+### ✨ Added
+- **Scene‑collection templates** — *Gaming*, *Just Chatting*, *Podcast* ready‑made scaffolds (`templates/`). `c8cc503`
+- **Smart Setup** — detected‑hardware summary (CPU physical cores + available encoders: NVENC/QSV/AMF/VideoToolbox) on the auto‑config wizard's results page. `dac3ae2`
+
+---
+
+## 🟥 [v0.1.1] — Polish &nbsp;·&nbsp; `Update #002` &nbsp;·&nbsp; 2026‑06‑06
+
+### 🔧 Changed
+- **Performance dock** now shows the **peak (max)** value next to the live value on every graph. `e9a6b58`
+
+---
+
+## 🟥 [v0.1.0] — Foundation &nbsp;·&nbsp; `Update #001` &nbsp;·&nbsp; 2026‑06‑06
+
+> *From a stock ZIP to a building, running, branded fork.*
+
+### ✨ Added
+- **Netflix Cinematic theme** (`Yami_Empire.ovt`) — `#141414` / `#E50914`, 8–12 px radius, red LIVE state — set as the **default** theme. `8d165ea`
+- **Empire Performance dock** — dependency‑free custom‑painted live graphs (CPU · FPS · render · RAM). `8d165ea`
+- `empire-windows-x64` CMake preset (Visual Studio 2026 generator, Windows SDK 10.0.26100).
+
+### 🐛 Fixed (Visual Studio 2026 toolchain)
+- **STL1011** — silenced deprecated `<experimental/coroutine>` in `libobs-winrt` (MSVC 14.51 turned it into a hard error).
+- **MSB3374 / MSB3073** — build runs **serial** to avoid a file‑lock race on the nested x86 virtual‑camera sub‑build.
+
+### 🏁 Baseline
+- Forked from upstream OBS `f61619ce3` (2026‑05‑27). First successful build **and** run on VS 2026.
+
+---
+
+<div align="center">
+
+`v0.1.0` → `v0.3.0` &nbsp;·&nbsp; **8 commits** &nbsp;·&nbsp; **4 updates** &nbsp;·&nbsp; 1 day 🎬
+
+</div>
+
+[Unreleased]: https://github.com/Gh0s777tt/empire-OBS/compare/cb5f01783...HEAD
+[v0.3.0]: https://github.com/Gh0s777tt/empire-OBS/compare/dac3ae2d3...cb5f01783
+[v0.2.0]: https://github.com/Gh0s777tt/empire-OBS/compare/e9a6b5819...dac3ae2d3
+[v0.1.1]: https://github.com/Gh0s777tt/empire-OBS/compare/8d165ea30...e9a6b5819
+[v0.1.0]: https://github.com/Gh0s777tt/empire-OBS/compare/f61619ce3...8d165ea30
