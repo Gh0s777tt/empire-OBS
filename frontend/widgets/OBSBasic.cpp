@@ -45,6 +45,7 @@
 #include <utility/WhatsNewInfoThread.hpp>
 #endif
 #include <widgets/AudioMixer.hpp>
+#include <widgets/EmpireMultistreamDock.hpp>
 #include <widgets/EmpirePerfDock.hpp>
 #include <widgets/OBSProjector.hpp>
 
@@ -1369,6 +1370,9 @@ void OBSBasic::OnFirstLoad()
 
 	/* Empire-OBS: register the built-in performance / stream-health dock (#8). */
 	obs_frontend_add_dock_by_id("empire_perf_dock", "Empire Performance", new EmpirePerfDock());
+
+	/* Empire-OBS: register the multistream destinations dock (Tier B #3). */
+	obs_frontend_add_dock_by_id("empire_multistream_dock", "Empire Multistream", new EmpireMultistreamDock());
 
 #ifdef WHATSNEW_ENABLED
 	/* Attempt to load init screen if available */
