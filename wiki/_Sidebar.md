@@ -6,6 +6,7 @@
 - [Architecture](Architecture.md)
 - [Features](Features.md)
 - [Multistream](Multistream.md)
+- [Vertical 9:16](Vertical.md)
 - [Security](Security.md)
 - [FAQ](FAQ.md)
 
@@ -14,4 +15,4 @@
 - [CHANGELOG](https://github.com/Gh0s777tt/empire-OBS/blob/empire/main/CHANGELOG.md)
 - [ROADMAP](https://github.com/Gh0s777tt/empire-OBS/blob/empire/main/ROADMAP.md)
 
-`v0.3.0` · 🟥 Netflix
+`v0.5.0` · 🟥 Netflix

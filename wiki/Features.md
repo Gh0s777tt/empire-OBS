@@ -64,3 +64,9 @@ results page:
 ## 📡 Multistreaming
 
 Stream to **many platforms at once**. See the dedicated **[Multistream](Multistream.md)** page.
+
+---
+
+## 📱 Vertical 9:16
+
+Record a **1080×1920** vertical version of your scene for TikTok / Reels / Shorts — a dedicated 9:16 canvas that mirrors your program, with **Fill / Fit** framing and one‑click **Record**. See the dedicated **[Vertical 9:16](Vertical.md)** page.

@@ -13,9 +13,23 @@ Each release carries a sequential **Update #** number.
 
 Planned for the next updates — see [ROADMAP.md](ROADMAP.md).
 
-- 🟢 Vertical **9:16** output mode *(design complete — needs live build)*
 - 🟢 AI **background removal** (ONNX)
+- 🟢 Vertical **RTMP streaming** (recording shipped in v0.5.0)
 - 🟢 Scene‑template **auto‑install** for all users
+
+---
+
+## 🟥 [v0.5.0] — Vertical &nbsp;·&nbsp; `Update #006` &nbsp;·&nbsp; 2026‑06‑06
+
+> *Go vertical without a second layout.*
+
+### ✨ Added
+- **Vertical 9:16 dock** — a dedicated **1080×1920** `obs_canvas` mirroring your program scene live (`View → Docks → Empire Vertical 9:16`). `09a9e9b`
+- **Fill / Fit framing** toggle — crop‑to‑cover or letterbox the 16:9 program into the 9:16 frame. `db9caef`
+- **Record 9:16** — one click records the vertical canvas to `empire-vertical-<timestamp>.mp4` (hardware encoder when available, main audio mix). `8384705`
+
+### ⚙️ Technical
+- Frontend‑only — **no libobs changes**. The private canvas is drawn straight via `obs_canvas_render` (a private canvas has no core‑composited texture → `obs_render_canvas_texture` showed garbage). Recording binds a dedicated encoder to the canvas video + `ffmpeg_muxer`.
 
 ---
 
