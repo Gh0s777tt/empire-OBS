@@ -14,11 +14,15 @@ Two ways to use it: a **native dock** (recommended) or a **Lua script**.
 
 1. **View → Docks → Empire Multistream**
 2. For each destination: tick **Enable**, paste the **RTMP URL** + **stream key**
-3. Configure your **main** stream as usual (Settings → Stream)
-4. Click **Start all streams** (or just Start Streaming) — every enabled destination goes **LIVE**
+3. *(optional)* set a **kb/s** value to give that destination its **own bitrate** — leave it blank to share the main encoder
+4. Configure your **main** stream as usual (Settings → Stream)
+5. Click **Start all streams** (or just Start Streaming) — every enabled destination goes **LIVE**
 
 Per‑destination status shows **LIVE / failed / skipped**. Settings persist to the profile config
 (`[EmpireMultistream]`). Outputs start/stop automatically with the main stream.
+
+> 💡 A custom per‑destination bitrate uses a **dedicated encoder**, automatically picking a **hardware encoder**
+> (NVENC / QuickSync / AMF) when available so the extra encode barely touches your CPU — x264 fallback otherwise.
 
 ---
 
@@ -61,9 +65,9 @@ flowchart LR
 
 ---
 
-## ⚠️ Notes &amp; limits (v0.3.0)
+## ⚠️ Notes &amp; limits
 
-- All destinations **share the main bitrate/resolution** (one encode). Independent per‑destination settings are
-  planned for **v2** (would use separate encoders → more CPU/GPU).
+- By default destinations **share the main encoder** (one encode pass, no extra GPU/CPU). Set a **per‑destination
+  kb/s** to give one its own encode — this uses a hardware encoder when available (otherwise x264 → more CPU).
 - Make sure your **upload bandwidth** covers the *sum* of all destinations.
 - A failed destination shows **failed** and is logged — it never affects your main stream.

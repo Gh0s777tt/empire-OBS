@@ -10,6 +10,7 @@ Full dark UI in the Netflix palette, set as the **default** theme.
 - Rounded corners (8–12 px), modern font fallbacks
 - Red **LIVE** state on stream/record buttons, cinematic black preview
 - File: `frontend/data/themes/Yami_Empire.ovt` — a variant of `Yami`, so it inherits all widget styling
+- Variants: **Empire AMOLED** (pure‑black `#000000` for OLED panels) and **Empire Light**
 
 Switch any time: **Settings → Appearance → Empire (Netflix)**.
 
@@ -26,8 +27,12 @@ Live, custom‑painted graphs (no Qt Charts dependency):
 | Render time (ms) | `obs_get_average_frame_time_ns` |
 | Missed frames % | `obs_get_total_frames` / `obs_get_lagged_frames` |
 | Memory (MB) | `os_get_proc_resident_size` |
+| Dropped frames % | `obs_output_get_frames_dropped` / `…_total_frames` |
+| Stream bitrate (kb/s) | `obs_output_get_total_bytes` over time |
 
-Each graph shows the **current** value and the **peak (max)**. Enable via **View → Docks → Empire Performance**.
+Each graph shows the **current** value and the **peak (max)**. A **stream‑health banner** at the top turns
+**🟢 GOOD**, **🟡 WARNING**, or **🔴 CRITICAL** based on `max(dropped %, missed %)` while you're live — an
+at‑a‑glance "is my stream OK?". Enable via **View → Docks → Empire Performance**.
 
 ---
 

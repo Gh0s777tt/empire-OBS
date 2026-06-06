@@ -13,11 +13,30 @@ Each release carries a sequential **Update #** number.
 
 Planned for the next updates — see [ROADMAP.md](ROADMAP.md).
 
-- 🟢 Vertical **9:16** output mode
+- 🟢 Vertical **9:16** output mode *(design complete — needs live build)*
 - 🟢 AI **background removal** (ONNX)
 - 🟢 Scene‑template **auto‑install** for all users
-- 🟢 Multistream **v2** — independent per‑destination encoder settings
-- 🟢 **MkDocs** documentation site + fork **CI** workflow
+
+---
+
+## 🟥 [v0.4.0] — Hardening &amp; Health &nbsp;·&nbsp; `Update #005` &nbsp;·&nbsp; 2026‑06‑06
+
+> *Faster CI, enforced quality, live stream‑health.*
+
+### ✨ Added
+- **Stream‑health banner** in the Performance dock — GOOD / WARNING / CRITICAL from `max(dropped %, missed %)`. `06dc843`
+- **Hardware encoder** for dedicated per‑destination multistream — auto‑selects NVENC / QSV / AMF, x264 fallback (spares CPU). `06dc843`
+- **Per‑destination bitrate** in the Multistream dock — blank shares the main encoder; a value gives that destination its own encode.
+- **Performance dock** — dropped‑frames % + outgoing‑bitrate live graphs.
+- **Theme variants** — `Yami_EmpireAMOLED` (pure‑black OLED) and `Yami_EmpireLight`.
+- **Documentation site** (MkDocs Material) → GitHub Pages, + auto‑mirrored **Wiki**.
+- **Release automation** — CPack packaging + GitHub Release on `v*` tags.
+- **CI workflows** — upstream‑drift watcher · clang‑format lint · docs deploy · wiki sync.
+
+### 🔧 Changed
+- **Rebrand** — window title `Empire‑OBS` + package name `empire-obs`.
+- **Faster CI** — builds now **cache** Qt6 + CEF + obs‑deps (no multi‑GB re‑download per run). `86f2f9f`
+- **Enforced formatting** — the clang‑format lint is now **blocking** (pinned to clang‑format‑18). `d4ee54a`
 
 ---
 
