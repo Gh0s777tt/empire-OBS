@@ -220,8 +220,8 @@ void EmpireMultistreamDock::StartAll()
 		obs_output_set_reconnect_settings(output, 20, 2);
 
 		if (obs_output_start(output)) {
-			SetStatus(i, custom ? QStringLiteral("LIVE (%1 kb/s)").arg(customBitrate)
-					    : QStringLiteral("LIVE"),
+			SetStatus(i,
+				  custom ? QStringLiteral("LIVE (%1 kb/s)").arg(customBitrate) : QStringLiteral("LIVE"),
 				  "#46D369");
 			liveOutputs.push_back(std::move(output));
 			liveServices.push_back(std::move(service));

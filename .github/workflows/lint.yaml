@@ -26,12 +26,12 @@ jobs:
       - name: 🧹 Check formatting
         shell: bash
         run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq clang-format
-          clang-format --version
+          sudo apt-get update -qq && sudo apt-get install -y -qq clang-format-18
+          clang-format-18 --version
           files="frontend/widgets/EmpirePerfDock.cpp frontend/widgets/EmpirePerfDock.hpp frontend/widgets/EmpireMultistreamDock.cpp frontend/widgets/EmpireMultistreamDock.hpp"
           clean=1
           for f in $files; do
-            if clang-format --dry-run --Werror "$f" 2>/dev/null; then
+            if clang-format-18 --dry-run --Werror "$f" 2>/dev/null; then
               echo "  ok   $f"
             else
               echo "::warning file=$f::needs clang-format"

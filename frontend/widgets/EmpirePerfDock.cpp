@@ -144,11 +144,10 @@ EmpirePerfDock::EmpirePerfDock(QWidget *parent) : QFrame(parent), cpu_info(os_cp
 	renderGraph =
 		new EmpireGraph(QStringLiteral("Render"), QColor(0x3D, 0xBE, 0xF5), QStringLiteral("ms"), 0.0, this);
 	missedGraph = new EmpireGraph(QStringLiteral("Missed frames"), QColor(0xEA, 0xBC, 0x48), QStringLiteral("%"),
-				     100.0, this);
-	memGraph =
-		new EmpireGraph(QStringLiteral("Memory"), QColor(0x99, 0x7F, 0xDC), QStringLiteral("MB"), 0.0, this);
-	droppedGraph = new EmpireGraph(QStringLiteral("Dropped frames"), QColor(0xE5, 0x09, 0x14),
-				       QStringLiteral("%"), 100.0, this);
+				      100.0, this);
+	memGraph = new EmpireGraph(QStringLiteral("Memory"), QColor(0x99, 0x7F, 0xDC), QStringLiteral("MB"), 0.0, this);
+	droppedGraph = new EmpireGraph(QStringLiteral("Dropped frames"), QColor(0xE5, 0x09, 0x14), QStringLiteral("%"),
+				       100.0, this);
 	bitrateGraph = new EmpireGraph(QStringLiteral("Stream bitrate"), QColor(0x16, 0xB1, 0xF3),
 				       QStringLiteral("kb/s"), 0.0, this);
 
