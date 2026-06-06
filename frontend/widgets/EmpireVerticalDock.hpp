@@ -23,15 +23,24 @@ class EmpireVerticalDock : public QFrame {
 
 	OBSQTDisplay *display = nullptr;
 	QPushButton *modeButton = nullptr;
+	QPushButton *recordButton = nullptr;
 
 	obs_canvas_t *canvas = nullptr;
 	obs_scene_t *vScene = nullptr;         /* borrowed — owned by the canvas */
 	obs_sceneitem_t *mirrorItem = nullptr; /* the program-mirror item in vScene */
 	bool fillMode = true;                  /* true = Fill/crop, false = Fit/letterbox */
 
+	OBSOutputAutoRelease recordOutput;
+	OBSEncoderAutoRelease recordVEnc;
+	OBSEncoderAutoRelease recordAEnc;
+	bool recording = false;
+
 	void SyncToCurrentScene();
 	void ApplyFraming();
 	void UpdateModeButton();
+	void ToggleRecording();
+	void StartRecording();
+	void UpdateRecordButton();
 
 	static void RenderVertical(void *data, uint32_t cx, uint32_t cy);
 	static void OBSFrontendEvent(enum obs_frontend_event event, void *ptr);
