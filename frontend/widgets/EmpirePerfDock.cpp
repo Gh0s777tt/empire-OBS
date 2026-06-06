@@ -39,6 +39,9 @@ void EmpireGraph::addSample(double value)
 	if (samples.size() > capacity)
 		samples.erase(samples.begin());
 
+	if (value > peak)
+		peak = value;
+
 	update();
 }
 
@@ -83,7 +86,9 @@ void EmpireGraph::paintEvent(QPaintEvent *)
 	p.setPen(QColor(0xB3, 0xB3, 0xB3));
 	p.drawText(QRectF(left, r.top() + 4.0, w * 0.6, 18.0), Qt::AlignLeft | Qt::AlignVCenter, caption);
 
-	QString valText = QString::number(latest, 'f', 1);
+	QString valText = (peak > 0.0) ? QStringLiteral("%1  (max %2)")
+						 .arg(QString::number(latest, 'f', 1), QString::number(peak, 'f', 1))
+				       : QString::number(latest, 'f', 1);
 	if (!unit.isEmpty())
 		valText += QStringLiteral(" ") + unit;
 	p.setPen(QColor(0xFF, 0xFF, 0xFF));

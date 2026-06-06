@@ -33,6 +33,7 @@ class EmpireGraph : public QWidget {
 	std::vector<double> samples;
 	size_t capacity = 120;
 	double fixedMax = 0.0; /* 0 => auto-scale to data */
+	double peak = 0.0;     /* running maximum since the dock opened */
 	QColor lineColor;
 	QString caption;
 	QString unit;
