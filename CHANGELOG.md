@@ -14,7 +14,14 @@ Each release carries a sequential **Update #** number.
 Planned for the next updates — see [ROADMAP.md](ROADMAP.md).
 
 - 🟢 AI **background removal** (ONNX)
-- 🟢 Vertical **RTMP streaming** (recording shipped in v0.5.0)
+- 🟢 Dedicated vertical scene (compose 9:16 independently, not just a mirror)
+
+---
+
+## 🟥 [v0.5.2] — Vertical Live &nbsp;·&nbsp; `Update #008` &nbsp;·&nbsp; 2026‑06‑06
+
+### ✨ Added
+- **Vertical RTMP streaming** — a **Go Live 9:16** button streams the vertical canvas to any RTMP destination (URL + key, persisted), with a dedicated encoder (HW/x264, 6 Mb/s) + auto‑reconnect — independently of and alongside the main 16:9 stream. `bb37eaf`
 
 ---
 

@@ -36,6 +36,16 @@ Click **Record 9:16** (green) → it turns red **Stop ● REC** and records the 
 
 ---
 
+## 📡 Go Live 9:16 (RTMP)
+
+Paste a vertical **RTMP URL + stream key** into the controls row, then click **Go Live 9:16**.
+
+- Streams the 9:16 canvas to any RTMP destination (TikTok Live, YouTube, Kick, a test server…)
+- Runs **independently of and alongside** your main 16:9 stream — its own encoder (HW/x264, 6 Mb/s) + the main audio mix, with auto‑reconnect
+- URL + key are **remembered** (profile config)
+
+---
+
 ## ⚙️ How it works
 
 ```mermaid
@@ -44,6 +54,7 @@ flowchart LR
     VS --> VC["🖼️ 9:16 canvas<br/>1080×1920"]
     VC --> PREV["👁️ Preview dock"]
     VC --> REC["⏺️ empire-vertical-*.mp4"]
+    VC --> LIVE["📡 RTMP 9:16"]
     classDef red fill:#E50914,stroke:#141414,color:#fff;
     class VC red;
 ```
@@ -53,5 +64,4 @@ The vertical canvas is a **private `obs_canvas`** — no libobs core changes. It
 ---
 
 ## 🔜 Coming next
-- Vertical **RTMP streaming** (not just recording)
 - A **dedicated** vertical scene you compose independently (own sources, not just a mirror of the program)
