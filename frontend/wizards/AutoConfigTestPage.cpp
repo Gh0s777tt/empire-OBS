@@ -965,6 +965,33 @@ void AutoConfigTestPage::FinalizeResults()
 		return new QLabel(QTStr(str), this);
 	};
 
+	/* Empire-OBS (#13 Smart Setup): detected-hardware summary at the top of the results. */
+	{
+		auto plain = [this](const QString &text) -> QLabel * { return new QLabel(text, this); };
+
+		QString hw;
+		auto addEnc = [&](bool avail, const char *name) {
+			if (avail) {
+				if (!hw.isEmpty())
+					hw += ", ";
+				hw += name;
+			}
+		};
+		addEnc(wiz->nvencAvailable, "NVIDIA NVENC");
+		addEnc(wiz->qsvAvailable, "Intel QuickSync");
+		addEnc(wiz->vceAvailable, "AMD AMF");
+		addEnc(wiz->appleAvailable, "Apple VideoToolbox");
+		if (hw.isEmpty())
+			hw = "software (x264) only";
+
+		QLabel *hdr = plain(QStringLiteral("— Empire Smart Setup — detected hardware —"));
+		hdr->setStyleSheet("font-weight: bold; color: #E50914;");
+		form->addRow(hdr);
+		form->addRow(plain(QStringLiteral("CPU physical cores")),
+			     plain(QString::number(os_get_physical_cores())));
+		form->addRow(plain(QStringLiteral("Hardware encoders")), plain(hw));
+	}
+
 	if (wiz->type == AutoConfig::Type::Streaming) {
 		const char *serverType = wiz->customServer ? "rtmp_custom" : "rtmp_common";
 
