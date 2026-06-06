@@ -55,7 +55,7 @@ jobs:
         run: |
           Push-Location build_x64
           try { cpack -C RelWithDebInfo } catch { Write-Warning "cpack failed: $_" }
-          $zip = Get-ChildItem -Filter "obs-studio-*-windows-x64.zip" -ErrorAction SilentlyContinue | Select-Object -First 1
+          $zip = Get-ChildItem -Filter "*-windows-x64.zip" -ErrorAction SilentlyContinue | Select-Object -First 1
           if (-not $zip) {
             Write-Host "CPack zip not found — falling back to rundir archive."
             Compress-Archive -Path "rundir/RelWithDebInfo/*" -DestinationPath "obs-studio-portable-windows-x64.zip" -Force
