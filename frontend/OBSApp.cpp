@@ -43,6 +43,9 @@
 #endif
 
 #include <QSessionManager>
+#include <QFile>
+
+#include <fstream>
 #ifndef _WIN32
 #include <QSocketNotifier>
 #endif
@@ -1044,6 +1047,44 @@ static void move_basic_to_scene_collections(void)
 	}
 }
 
+/* Empire-OBS: drop the bundled scene-collection templates into the user's
+ * scenes folder on first run so they appear in the Scene Collection menu. */
+static void install_empire_templates(void)
+{
+	const std::filesystem::path scenesDir =
+		App()->userScenesLocation / std::filesystem::u8path("obs-studio/basic/scenes");
+
+	std::error_code ec;
+	std::filesystem::create_directories(scenesDir, ec);
+
+	/* One-time install — a marker lets the user delete templates without them
+	 * reappearing on the next launch. */
+	const std::filesystem::path marker = scenesDir / std::filesystem::u8path(".empire_templates");
+	if (std::filesystem::exists(marker))
+		return;
+
+	const char *names[] = {"Empire_Gaming.json", "Empire_Just_Chatting.json", "Empire_Podcast.json"};
+	for (const char *name : names) {
+		const std::filesystem::path dest = scenesDir / std::filesystem::u8path(name);
+		if (std::filesystem::exists(dest))
+			continue;
+
+		QFile res(QStringLiteral(":/empire/") + QString::fromUtf8(name));
+		if (!res.open(QIODevice::ReadOnly))
+			continue;
+		const QByteArray data = res.readAll();
+		res.close();
+
+		std::ofstream out(dest, std::ios::binary);
+		if (out.is_open()) {
+			out.write(data.constData(), data.size());
+			blog(LOG_INFO, "[Empire] installed scene template: %s", name);
+		}
+	}
+
+	std::ofstream(marker, std::ios::binary) << "1";
+}
+
 void OBSApp::AppInit()
 {
 	ProfileScope("OBSApp::AppInit");
@@ -1094,6 +1135,7 @@ void OBSApp::AppInit()
 
 	move_basic_to_profiles();
 	move_basic_to_scene_collections();
+	install_empire_templates();
 
 	if (!MakeUserProfileDirs())
 		throw "Failed to create profile directories";

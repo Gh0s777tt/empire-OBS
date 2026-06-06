@@ -95,4 +95,9 @@
     <file>fonts/OpenSans-Bold.ttf</file>
     <file>fonts/OpenSans-Italic.ttf</file>
   </qresource>
+  <qresource prefix="/empire">
+    <file alias="Empire_Gaming.json">empire-templates/Empire_Gaming.json</file>
+    <file alias="Empire_Just_Chatting.json">empire-templates/Empire_Just_Chatting.json</file>
+    <file alias="Empire_Podcast.json">empire-templates/Empire_Podcast.json</file>
+  </qresource>
 </RCC>
