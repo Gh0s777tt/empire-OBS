@@ -45,6 +45,7 @@
 #include <utility/WhatsNewInfoThread.hpp>
 #endif
 #include <widgets/AudioMixer.hpp>
+#include <widgets/EmpirePerfDock.hpp>
 #include <widgets/OBSProjector.hpp>
 
 #include <OBSStudioAPI.hpp>
@@ -1365,6 +1366,9 @@ void OBSBasic::OBSInit()
 void OBSBasic::OnFirstLoad()
 {
 	OnEvent(OBS_FRONTEND_EVENT_FINISHED_LOADING);
+
+	/* Empire-OBS: register the built-in performance / stream-health dock (#8). */
+	obs_frontend_add_dock_by_id("empire_perf_dock", "Empire Performance", new EmpirePerfDock());
 
 #ifdef WHATSNEW_ENABLED
 	/* Attempt to load init screen if available */

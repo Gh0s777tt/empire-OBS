@@ -11,6 +11,11 @@ add_library(OBS::libobs-winrt ALIAS libobs-winrt)
 
 target_sources(libobs-winrt PRIVATE winrt-capture.cpp winrt-capture.h winrt-dispatch.cpp winrt-dispatch.h)
 
+# Empire-OBS: VS 2026 (MSVC 14.5x) turned the deprecated <experimental/coroutine>
+# header - still pulled in by C++/WinRT - into a hard error (STL1011). Silence it
+# until cppwinrt migrates to the C++20 <coroutine> header.
+target_compile_definitions(libobs-winrt PRIVATE _SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)
+
 target_precompile_headers(
   libobs-winrt
   PRIVATE
