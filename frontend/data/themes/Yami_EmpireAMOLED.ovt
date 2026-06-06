@@ -1,0 +1,72 @@
+@OBSThemeMeta {
+    name: 'Empire (AMOLED)';
+    id: 'com.empireobs.AMOLED';
+    extends: 'com.obsproject.Yami';
+    author: 'Empire OBS';
+    dark: 'true';
+}
+
+@OBSThemeVars {
+    /* Pure-black AMOLED ramp (deep contrast, saves power on OLED) + Netflix red */
+    --grey1: #3A3A3A;
+    --grey2: #2E2E2E;
+    --grey3: #242424;
+    --grey4: #1A1A1A;
+    --grey5: #121212;
+    --grey6: #0A0A0A;
+    --grey7: #000000;
+    --grey8: #000000;
+
+    --primary: #E50914;
+    --primary_light: #F40612;
+    --primary_lighter: #FF5C66;
+    --primary_dark: #B20710;
+    --primary_darker: #7D0510;
+
+    --danger: #E50914;
+
+    --bg_window: #000000;
+    --bg_base: #050505;
+    --bg_preview: #000000;
+
+    --text: #FFFFFF;
+    --text_light: #FFFFFF;
+    --text_muted: #B3B3B3;
+
+    --highlight_color: var(--primary);
+
+    --border_radius: 8px;
+    --border_radius_small: 6px;
+    --border_radius_large: 12px;
+
+    --border_color: var(--grey4);
+    --input_bg: var(--grey5);
+    --input_bg_hover: var(--grey4);
+    --input_bg_focus: var(--grey6);
+    --input_border_focus: var(--primary);
+
+    --list_item_bg_selected: var(--primary_dark);
+    --list_item_bg_hover: var(--grey4);
+
+    --button_bg: var(--grey5);
+    --button_bg_hover: var(--grey4);
+    --button_bg_down: var(--grey6);
+
+    --button_bg_red: #E50914;
+    --button_bg_red_hover: #F40612;
+    --button_bg_red_down: #B20710;
+
+    --scrollbar_handle: var(--grey4);
+    --scrollbar_hover: var(--primary);
+    --toolbutton_bg: var(--grey5);
+    --toolbutton_bg_hover: var(--grey4);
+    --toolbutton_bg_down: var(--primary_dark);
+}
+
+OBSQTDisplay {
+    qproperty-displayBackgroundColor: #000000;
+}
+
+* {
+    font-family: "Segoe UI", "Inter", "SF Pro Display", "Roboto", sans-serif;
+}

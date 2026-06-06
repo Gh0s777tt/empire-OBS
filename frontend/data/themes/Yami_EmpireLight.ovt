@@ -1,0 +1,38 @@
+@OBSThemeMeta {
+    name: 'Empire (Light)';
+    id: 'com.empireobs.Light';
+    extends: 'com.obsproject.Yami.Light';
+    author: 'Empire OBS';
+    dark: 'false';
+}
+
+@OBSThemeVars {
+    /* Inherit the light theme, swap the accent to Netflix red */
+    --primary: #E50914;
+    --primary_light: #F40612;
+    --primary_lighter: #FF5C66;
+    --primary_dark: #B20710;
+    --primary_darker: #7D0510;
+
+    --danger: #E50914;
+    --highlight_color: var(--primary);
+
+    --border_radius: 8px;
+    --border_radius_small: 6px;
+    --border_radius_large: 12px;
+
+    --input_border_focus: var(--primary);
+    --list_item_bg_selected: var(--primary);
+
+    --button_bg_red: #E50914;
+    --button_bg_red_hover: #F40612;
+    --button_bg_red_down: #B20710;
+
+    --tab_border_selected: var(--primary);
+    --scrollbar_hover: var(--primary);
+    --toolbutton_bg_down: var(--primary_dark);
+}
+
+* {
+    font-family: "Segoe UI", "Inter", "SF Pro Display", "Roboto", sans-serif;
+}
