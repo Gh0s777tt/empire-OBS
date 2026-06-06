@@ -1,0 +1,51 @@
+name: 🔄 Sync Wiki
+
+# Single source of truth: the in-repo `wiki/` folder (relative .md links, nice
+# in the repo browser). On every change, this job mirrors it to the GitHub Wiki
+# tab, converting `[text](Page.md)` links into native `[[Page]]` wiki links.
+
+on:
+  push:
+    branches: [empire/main]
+    paths: ["wiki/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-wiki
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    name: Mirror wiki/ → Wiki tab
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔄 Sync to GitHub Wiki
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config --global user.name  "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          git clone "https://github-actions:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.wiki.git" wiki-remote
+
+          # Replace all pages from the repo source (handles renames/removals)
+          find wiki-remote -maxdepth 1 -name '*.md' -delete
+          for f in wiki/*.md; do
+            sed -E 's/\[[^]]+\]\(([A-Za-z][A-Za-z0-9_-]*)\.md\)/[[\1]]/g' "$f" > "wiki-remote/$(basename "$f")"
+          done
+
+          cd wiki-remote
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Wiki already up to date."
+          else
+            git commit -m "sync: mirror wiki/ from repo (${{ github.sha }})"
+            git push
+            echo "Wiki updated."
+          fi
