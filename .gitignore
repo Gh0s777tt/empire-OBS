@@ -49,3 +49,9 @@ build-aux/flatpak-github-action-modified-*
 
 # Exclude CMake build number cache
 /cmake/.CMakeBuildNumber
+
+# Empire-OBS documentation (un-ignore .md docs)
+!README.md
+!CHANGELOG.md
+!ROADMAP.md
+!wiki/*.md
