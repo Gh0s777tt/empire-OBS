@@ -9,6 +9,7 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QPushButton>
 #include <QVBoxLayout>
 
 #include <cstdio>
@@ -66,9 +67,20 @@ EmpireMultistreamDock::EmpireMultistreamDock(QWidget *parent) : QFrame(parent)
 	grid->setColumnStretch(1, 3);
 	grid->setColumnStretch(2, 2);
 	layout->addLayout(grid);
+
+	mainStatus = new QLabel(this);
+	mainStatus->setStyleSheet("color: #808080;");
+	layout->addWidget(mainStatus);
+
+	startAllButton = new QPushButton(this);
+	startAllButton->setMinimumHeight(34);
+	connect(startAllButton, &QPushButton::clicked, this, [this]() { ToggleStreaming(); });
+	layout->addWidget(startAllButton);
+
 	layout->addStretch();
 
 	Load();
+	UpdateControls();
 
 	obs_frontend_add_event_callback(OBSFrontendEvent, this);
 
@@ -85,6 +97,26 @@ void EmpireMultistreamDock::SetStatus(int i, const QString &text, const char *cs
 {
 	rows[i].status->setText(text);
 	rows[i].status->setStyleSheet(QStringLiteral("color: %1;").arg(cssColor));
+}
+
+void EmpireMultistreamDock::UpdateControls()
+{
+	bool active = obs_frontend_streaming_active();
+
+	startAllButton->setText(active ? QStringLiteral("Stop all streams") : QStringLiteral("Start all streams"));
+	startAllButton->setStyleSheet(active ? "background-color: #B20710; color: white; font-weight: bold;"
+					     : "background-color: #E50914; color: white; font-weight: bold;");
+
+	mainStatus->setText(active ? QStringLiteral("Main stream: LIVE") : QStringLiteral("Main stream: idle"));
+	mainStatus->setStyleSheet(active ? "color: #46D369;" : "color: #808080;");
+}
+
+void EmpireMultistreamDock::ToggleStreaming()
+{
+	if (obs_frontend_streaming_active())
+		obs_frontend_streaming_stop();
+	else
+		obs_frontend_streaming_start();
 }
 
 void EmpireMultistreamDock::Load()
@@ -186,8 +218,20 @@ void EmpireMultistreamDock::OBSFrontendEvent(enum obs_frontend_event event, void
 {
 	EmpireMultistreamDock *dock = static_cast<EmpireMultistreamDock *>(ptr);
 
-	if (event == OBS_FRONTEND_EVENT_STREAMING_STARTED)
+	switch (event) {
+	case OBS_FRONTEND_EVENT_STREAMING_STARTED:
 		dock->StartAll();
-	else if (event == OBS_FRONTEND_EVENT_STREAMING_STOPPING)
+		dock->UpdateControls();
+		break;
+	case OBS_FRONTEND_EVENT_STREAMING_STOPPING:
 		dock->StopAll();
+		dock->UpdateControls();
+		break;
+	case OBS_FRONTEND_EVENT_STREAMING_STARTING:
+	case OBS_FRONTEND_EVENT_STREAMING_STOPPED:
+		dock->UpdateControls();
+		break;
+	default:
+		break;
+	}
 }

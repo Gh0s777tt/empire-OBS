@@ -8,6 +8,9 @@
  * SHARES the main stream's video/audio encoders — one encode pass, multiple
  * uploads (no extra GPU/CPU). Outputs start/stop automatically with the main
  * stream via the frontend STREAMING_STARTED / STREAMING_STOPPING events.
+ *
+ * A "Start all streams" button starts the main stream (and therefore every
+ * enabled destination) in one click.
  */
 
 #include <obs.hpp>
@@ -19,6 +22,7 @@
 class QLineEdit;
 class QCheckBox;
 class QLabel;
+class QPushButton;
 
 class EmpireMultistreamDock : public QFrame {
 	Q_OBJECT
@@ -33,6 +37,9 @@ class EmpireMultistreamDock : public QFrame {
 	};
 	DestRow rows[NUM_DESTS];
 
+	QPushButton *startAllButton = nullptr;
+	QLabel *mainStatus = nullptr;
+
 	std::vector<OBSOutputAutoRelease> liveOutputs;
 	std::vector<OBSServiceAutoRelease> liveServices;
 
@@ -41,6 +48,8 @@ class EmpireMultistreamDock : public QFrame {
 	void StartAll();
 	void StopAll();
 	void SetStatus(int i, const QString &text, const char *cssColor);
+	void UpdateControls();
+	void ToggleStreaming();
 
 	static void OBSFrontendEvent(enum obs_frontend_event event, void *ptr);
 
