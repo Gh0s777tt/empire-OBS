@@ -16,6 +16,10 @@ if(NOT DEFINED OBS_VERSION_OVERRIDE AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git
     OUTPUT_STRIP_TRAILING_WHITESPACE
   )
 
+  # Empire-OBS: release tags carry a leading "v" (e.g. v0.5.1); strip it so the
+  # numeric MAJOR.MINOR.PATCH parse below (and CMake project(VERSION)) stays valid.
+  string(REGEX REPLACE "^v" "" _obs_version "${_obs_version}")
+
   if(_git_describe_err)
     message(FATAL_ERROR "Could not fetch OBS version tag from git.\n" ${_git_describe_err})
   endif()
