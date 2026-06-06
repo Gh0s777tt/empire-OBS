@@ -1,0 +1,58 @@
+name: 🎬 Empire Build
+
+# Builds Empire-OBS on a Windows runner and uploads a portable build artifact.
+# Runs on demand (Actions tab → Run workflow) and on version tags (v*).
+# Uses the stock `windows-x64` preset (Visual Studio 2022), which matches the
+# GitHub-hosted runner — the VS-2026 fixes in this fork are harmless on VS 2022.
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: empire-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows-x64:
+    name: Build · Windows x64
+    runs-on: windows-2022
+    steps:
+      - name: 📥 Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: 🛠️ Show toolchain
+        shell: pwsh
+        run: |
+          cmake --version
+          Write-Host "Runner: $env:RUNNER_OS"
+
+      - name: ⚙️ Configure (downloads Qt6 + CEF + obs-deps)
+        shell: pwsh
+        run: cmake --preset windows-x64
+
+      - name: 🔨 Build (RelWithDebInfo)
+        shell: pwsh
+        run: cmake --build --preset windows-x64
+
+      - name: 📦 Package portable build
+        shell: pwsh
+        run: |
+          $rundir = "build_x64/rundir/RelWithDebInfo"
+          if (-not (Test-Path $rundir)) { throw "rundir not found: $rundir" }
+          Compress-Archive -Path "$rundir/*" -DestinationPath "empire-obs-portable-x64.zip" -Force
+          Write-Host "Packaged: empire-obs-portable-x64.zip"
+
+      - name: ⬆️ Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: empire-obs-portable-x64
+          path: empire-obs-portable-x64.zip
+          if-no-files-found: error

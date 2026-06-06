@@ -1,0 +1,31 @@
+name: ✨ Feature request
+description: Suggest an idea for Empire-OBS
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: The idea
+      description: What should Empire‑OBS do?
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Theme / UI
+        - Multistream
+        - Performance
+        - Scene tools
+        - AI & automation
+        - IoT & devices
+        - Docs
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why / use case
+      description: What problem does it solve for streamers?
