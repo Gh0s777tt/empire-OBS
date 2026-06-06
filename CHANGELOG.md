@@ -15,7 +15,14 @@ Planned for the next updates — see [ROADMAP.md](ROADMAP.md).
 
 - 🟢 AI **background removal** (ONNX)
 - 🟢 Vertical **RTMP streaming** (recording shipped in v0.5.0)
-- 🟢 Scene‑template **auto‑install** for all users
+
+---
+
+## 🟥 [v0.5.1] — Branding &amp; Templates &nbsp;·&nbsp; `Update #007` &nbsp;·&nbsp; 2026‑06‑06
+
+### ✨ Added
+- **Empire app icon** — a red “E” window / taskbar icon replacing the stock OBS mark. `cbd276c`
+- **Scene‑template auto‑install** — *Empire Gaming · Just Chatting · Podcast* collections drop into your scenes folder on first run (one‑time, marker‑guarded, never clobbers existing collections). `591144e`
 
 ---
 
