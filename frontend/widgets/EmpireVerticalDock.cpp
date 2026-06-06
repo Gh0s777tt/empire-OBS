@@ -7,6 +7,7 @@
 #include <graphics/graphics.h>
 #include <graphics/vec2.h>
 #include <graphics/vec3.h>
+#include <graphics/vec4.h>
 #include <graphics/matrix4.h>
 #include <util/platform.h>
 #include <util/config-file.h>
@@ -539,6 +540,12 @@ void EmpireVerticalDock::RenderVertical(void *data, uint32_t, uint32_t)
 
 	uint32_t dw = 0, dh = 0;
 	obs_display_size(self->display->GetDisplay(), &dw, &dh);
+
+	/* Clear to black first so an empty/partial vertical scene never shows
+	 * uninitialised GPU memory (the "white bars"). */
+	struct vec4 clearColor;
+	vec4_set(&clearColor, 0.0f, 0.0f, 0.0f, 1.0f);
+	gs_clear(GS_CLEAR_COLOR, &clearColor, 1.0f, 0);
 
 	int x = 0, y = 0;
 	float scale = 1.0f;
