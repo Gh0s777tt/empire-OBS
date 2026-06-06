@@ -51,7 +51,13 @@ jobs:
 
       - name: ⚙️ Configure (downloads Qt6 + CEF + obs-deps)
         shell: pwsh
-        run: cmake --preset windows-x64
+        run: |
+          # OBS project() needs a numeric X.Y.Z. A "v"-prefixed tag (v0.5.1) or a bare
+          # hash makes the git-describe-derived version invalid, so override explicitly.
+          $desc = (git describe --always --tags)
+          if ($desc -match '(\d+\.\d+\.\d+)') { $ver = $Matches[1] } else { $ver = '0.5.1' }
+          Write-Host "OBS_VERSION_OVERRIDE=$ver (from '$desc')"
+          cmake --preset windows-x64 "-DOBS_VERSION_OVERRIDE=$ver"
 
       - name: 🔨 Build (RelWithDebInfo)
         shell: pwsh
