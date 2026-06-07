@@ -43,6 +43,7 @@ jobs:
             frontend/widgets/EmpirePerfDock.cpp \
             frontend/widgets/EmpireMultistreamDock.cpp \
             frontend/widgets/EmpireScenesDock.cpp \
+            frontend/widgets/EmpireSourcesDock.cpp \
             frontend/widgets/EmpireVerticalDock.cpp \
             2>&1 | tee cppcheck.txt
           echo "### 🔬 cppcheck — Empire sources" >> "$GITHUB_STEP_SUMMARY"

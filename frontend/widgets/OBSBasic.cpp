@@ -50,6 +50,7 @@
 #include <widgets/EmpireMultistreamDock.hpp>
 #include <widgets/EmpirePerfDock.hpp>
 #include <widgets/EmpireScenesDock.hpp>
+#include <widgets/EmpireSourcesDock.hpp>
 #include <widgets/EmpireVerticalDock.hpp>
 #include <widgets/OBSProjector.hpp>
 
@@ -1389,6 +1390,9 @@ void OBSBasic::OnFirstLoad()
 
 	/* Empire-OBS: register the modern audio panel (UI rebuild phase 3). */
 	obs_frontend_add_dock_by_id("empire_audio_dock", "Empire Audio", new EmpireAudioDock());
+
+	/* Empire-OBS: register the modern sources panel (UI rebuild phase 4). */
+	obs_frontend_add_dock_by_id("empire_sources_dock", "Empire Sources", new EmpireSourcesDock());
 
 	/* Empire-OBS: one-time welcome on the very first launch. */
 	{

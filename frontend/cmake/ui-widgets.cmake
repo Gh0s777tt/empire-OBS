@@ -24,6 +24,8 @@ target_sources(
     widgets/EmpirePerfDock.hpp
     widgets/EmpireScenesDock.cpp
     widgets/EmpireScenesDock.hpp
+    widgets/EmpireSourcesDock.cpp
+    widgets/EmpireSourcesDock.hpp
     widgets/EmpireVerticalDock.cpp
     widgets/EmpireVerticalDock.hpp
     widgets/OBSBasic.cpp
