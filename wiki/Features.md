@@ -10,9 +10,9 @@ Full dark UI in the Netflix palette, set as the **default** theme.
 - Rounded corners (8–12 px), modern font fallbacks
 - Red **LIVE** state on stream/record buttons, cinematic black preview
 - File: `frontend/data/themes/Yami_Empire.ovt` — a variant of `Yami`, so it inherits all widget styling
-- Variants: **Empire AMOLED** (pure‑black `#000000` for OLED panels) and **Empire Light**
+- Variants: **Empire AMOLED** (pure‑black OLED) · **Empire Light** · accent themes **Blue / Purple / Green** (LIVE stays red)
 
-Switch any time: **Settings → Appearance → Empire (Netflix)**.
+Switch any time: **Settings → Appearance**.
 
 ---
 

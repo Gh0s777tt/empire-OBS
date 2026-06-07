@@ -11,9 +11,18 @@ Each release carries a sequential **Update #** number.
 
 ## 🔜 [Unreleased]
 
-Planned for the next updates — see [ROADMAP.md](ROADMAP.md).
+The big remaining ideas are separate projects — see [ROADMAP.md](ROADMAP.md): AI background removal (use the [plugin](Background-Removal.md)), a mobile companion, IoT.
 
-- 🟢 Persist the custom vertical layout across sessions
+---
+
+## 🟥 [v0.6.0] — Polish &amp; Personalize &nbsp;·&nbsp; `Update #010` &nbsp;·&nbsp; 2026‑06‑07
+
+> *Make it yours.*
+
+### ✨ Added
+- **Accent themes** — *Empire Blue · Purple · Green* alongside Red / AMOLED / Light (Settings → Appearance); LIVE controls stay red. `3e1f9eb`
+- **First‑run welcome** — a one‑time branded intro to the theme, Vertical 9:16, multistream and the performance dock. `3e1f9eb`
+- **Vertical layout persistence** — the Custom 9:16 composition (reframe + added sources) is saved and restored across sessions. `f49e334`
 
 ---
 
