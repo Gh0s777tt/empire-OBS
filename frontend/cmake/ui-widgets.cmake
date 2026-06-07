@@ -14,6 +14,8 @@ target_sources(
     widgets/AudioMixer.hpp
     widgets/ColorSelect.cpp
     widgets/ColorSelect.hpp
+    widgets/EmpireAudioDock.cpp
+    widgets/EmpireAudioDock.hpp
     widgets/EmpireCommandDock.cpp
     widgets/EmpireCommandDock.hpp
     widgets/EmpireMultistreamDock.cpp

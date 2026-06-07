@@ -45,6 +45,7 @@
 #include <utility/WhatsNewInfoThread.hpp>
 #endif
 #include <widgets/AudioMixer.hpp>
+#include <widgets/EmpireAudioDock.hpp>
 #include <widgets/EmpireCommandDock.hpp>
 #include <widgets/EmpireMultistreamDock.hpp>
 #include <widgets/EmpirePerfDock.hpp>
@@ -1385,6 +1386,9 @@ void OBSBasic::OnFirstLoad()
 
 	/* Empire-OBS: register the modern scene switcher (UI rebuild phase 2). */
 	obs_frontend_add_dock_by_id("empire_scenes_dock", "Empire Scenes", new EmpireScenesDock());
+
+	/* Empire-OBS: register the modern audio panel (UI rebuild phase 3). */
+	obs_frontend_add_dock_by_id("empire_audio_dock", "Empire Audio", new EmpireAudioDock());
 
 	/* Empire-OBS: one-time welcome on the very first launch. */
 	{

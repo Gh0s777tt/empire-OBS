@@ -38,6 +38,7 @@ jobs:
             --suppress=unmatchedSuppression \
             --std=c++17 --language=c++ \
             --quiet --error-exitcode=0 \
+            frontend/widgets/EmpireAudioDock.cpp \
             frontend/widgets/EmpireCommandDock.cpp \
             frontend/widgets/EmpirePerfDock.cpp \
             frontend/widgets/EmpireMultistreamDock.cpp \
