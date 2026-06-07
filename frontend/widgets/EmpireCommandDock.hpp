@@ -1,11 +1,11 @@
 #pragma once
 
 /*
- * Empire OBS — Command Center dock (UI rebuild, phase 1).
+ * Empire OBS — top command bar (UI rebuild).
  *
- * A sleek horizontal "command bar": LIVE / REC status + elapsed timer, live
- * vitals (CPU / FPS / dropped / bitrate) and big primary actions
- * (Go Live · Record · Studio). Meant to sit across the top as the modern face.
+ * The modern header: Empire brand · current profile / scene collection · live
+ * CPU / FPS · an ON AIR badge with elapsed time · a clock, plus the primary
+ * Go Live / Record / Studio actions. Sits across the top as the app's face.
  */
 
 #include <obs.hpp>
@@ -21,8 +21,11 @@ class QPushButton;
 class EmpireCommandDock : public QFrame {
 	Q_OBJECT
 
-	QLabel *statusLabel = nullptr;
+	QLabel *brandLabel = nullptr;
+	QLabel *infoLabel = nullptr;
 	QLabel *statsLabel = nullptr;
+	QLabel *onAirLabel = nullptr;
+	QLabel *clockLabel = nullptr;
 	QPushButton *goLiveBtn = nullptr;
 	QPushButton *recordBtn = nullptr;
 	QPushButton *studioBtn = nullptr;
@@ -32,13 +35,10 @@ class EmpireCommandDock : public QFrame {
 
 	uint64_t streamStart = 0;
 	uint64_t recordStart = 0;
-	int first_total = 0;
-	int first_dropped = 0;
-	uint64_t lastBytes = 0;
-	uint64_t lastBytesTime = 0;
 
 	void Update();
 	void UpdateButtons();
+	void UpdateInfo();
 
 	static void OBSFrontendEvent(enum obs_frontend_event event, void *ptr);
 

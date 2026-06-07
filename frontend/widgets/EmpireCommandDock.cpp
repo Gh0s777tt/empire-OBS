@@ -5,6 +5,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
+#include <QTime>
 
 #include "moc_EmpireCommandDock.cpp"
 
@@ -21,23 +22,37 @@ static QString empire_fmt_time(uint64_t secs)
 EmpireCommandDock::EmpireCommandDock(QWidget *parent) : QFrame(parent), cpu_info(os_cpu_usage_info_start()), timer(this)
 {
 	QHBoxLayout *layout = new QHBoxLayout(this);
-	layout->setContentsMargins(12, 8, 12, 8);
-	layout->setSpacing(16);
+	layout->setContentsMargins(14, 8, 14, 8);
+	layout->setSpacing(18);
 
-	statusLabel = new QLabel(this);
-	statusLabel->setTextFormat(Qt::RichText);
-	statusLabel->setStyleSheet("font-size: 14px; font-weight: bold;");
-	layout->addWidget(statusLabel);
+	brandLabel = new QLabel(this);
+	brandLabel->setTextFormat(Qt::RichText);
+	brandLabel->setText(QStringLiteral(
+		"<span style='font-size:15px; font-weight:800; color:#FFFFFF;'>Empire<span style='color:#E50914;'>OBS</span></span>"));
+	layout->addWidget(brandLabel);
 
-	statsLabel = new QLabel(this);
-	statsLabel->setStyleSheet("color: #B3B3B3;");
-	layout->addWidget(statsLabel);
+	infoLabel = new QLabel(this);
+	infoLabel->setTextFormat(Qt::RichText);
+	infoLabel->setStyleSheet("color:#888888;");
+	layout->addWidget(infoLabel);
 
 	layout->addStretch();
 
+	statsLabel = new QLabel(this);
+	statsLabel->setStyleSheet("color:#B3B3B3;");
+	layout->addWidget(statsLabel);
+
+	onAirLabel = new QLabel(this);
+	onAirLabel->setStyleSheet("color:#808080; font-weight:bold;");
+	layout->addWidget(onAirLabel);
+
+	clockLabel = new QLabel(this);
+	clockLabel->setStyleSheet("color:#FFFFFF; font-weight:bold; font-size:14px;");
+	layout->addWidget(clockLabel);
+
 	goLiveBtn = new QPushButton(this);
-	goLiveBtn->setMinimumHeight(34);
-	goLiveBtn->setMinimumWidth(96);
+	goLiveBtn->setMinimumHeight(32);
+	goLiveBtn->setMinimumWidth(92);
 	connect(goLiveBtn, &QPushButton::clicked, this, []() {
 		if (obs_frontend_streaming_active())
 			obs_frontend_streaming_stop();
@@ -47,7 +62,7 @@ EmpireCommandDock::EmpireCommandDock(QWidget *parent) : QFrame(parent), cpu_info
 	layout->addWidget(goLiveBtn);
 
 	recordBtn = new QPushButton(this);
-	recordBtn->setMinimumHeight(34);
+	recordBtn->setMinimumHeight(32);
 	connect(recordBtn, &QPushButton::clicked, this, []() {
 		if (obs_frontend_recording_active())
 			obs_frontend_recording_stop();
@@ -57,7 +72,7 @@ EmpireCommandDock::EmpireCommandDock(QWidget *parent) : QFrame(parent), cpu_info
 	layout->addWidget(recordBtn);
 
 	studioBtn = new QPushButton(this);
-	studioBtn->setMinimumHeight(34);
+	studioBtn->setMinimumHeight(32);
 	connect(studioBtn, &QPushButton::clicked, this,
 		[]() { obs_frontend_set_preview_program_mode(!obs_frontend_preview_program_mode_active()); });
 	layout->addWidget(studioBtn);
@@ -65,6 +80,7 @@ EmpireCommandDock::EmpireCommandDock(QWidget *parent) : QFrame(parent), cpu_info
 	connect(&timer, &QTimer::timeout, this, &EmpireCommandDock::Update);
 	timer.setInterval(EMPIRE_CMD_INTERVAL);
 
+	UpdateInfo();
 	UpdateButtons();
 	Update();
 	obs_frontend_add_event_callback(OBSFrontendEvent, this);
@@ -76,6 +92,18 @@ EmpireCommandDock::~EmpireCommandDock()
 {
 	obs_frontend_remove_event_callback(OBSFrontendEvent, this);
 	os_cpu_usage_info_destroy(cpu_info);
+}
+
+void EmpireCommandDock::UpdateInfo()
+{
+	char *profile = obs_frontend_get_current_profile();
+	char *collection = obs_frontend_get_current_scene_collection();
+	infoLabel->setText(QString("Profil: <b style='color:#DDDDDD;'>%1</b>&nbsp;&nbsp;·&nbsp;&nbsp;"
+				   "Scene Collection: <b style='color:#DDDDDD;'>%2</b>")
+				   .arg(profile ? QString::fromUtf8(profile) : QString())
+				   .arg(collection ? QString::fromUtf8(collection) : QString()));
+	bfree(profile);
+	bfree(collection);
 }
 
 void EmpireCommandDock::UpdateButtons()
@@ -102,59 +130,32 @@ void EmpireCommandDock::UpdateButtons()
 
 void EmpireCommandDock::Update()
 {
+	clockLabel->setText(QTime::currentTime().toString(QStringLiteral("HH:mm")));
+
+	const double cpu = os_cpu_usage_info_query(cpu_info);
+	const double fps = obs_get_active_fps();
+	statsLabel->setTextFormat(Qt::RichText);
+	statsLabel->setText(
+		QString("CPU <b style='color:#FFFFFF;'>%1%</b>&nbsp;&nbsp;·&nbsp;&nbsp;FPS <b style='color:#FFFFFF;'>%2</b>")
+			.arg(QString::number(cpu, 'f', 1))
+			.arg(QString::number(fps, 'f', 0)));
+
 	const bool streaming = obs_frontend_streaming_active();
 	const bool recording = obs_frontend_recording_active();
 	const uint64_t now = os_gettime_ns();
 
-	QString status;
 	if (streaming) {
 		const uint64_t secs = streamStart ? (now - streamStart) / 1000000000ULL : 0;
-		status = QString("<span style='color:#E50914;'>● LIVE</span>&nbsp;&nbsp;%1").arg(empire_fmt_time(secs));
+		onAirLabel->setText(QString("● ON AIR  %1").arg(empire_fmt_time(secs)));
+		onAirLabel->setStyleSheet("color:#E50914; font-weight:bold;");
 	} else if (recording) {
 		const uint64_t secs = recordStart ? (now - recordStart) / 1000000000ULL : 0;
-		status = QString("<span style='color:#E50914;'>● REC</span>&nbsp;&nbsp;%1").arg(empire_fmt_time(secs));
+		onAirLabel->setText(QString("● REC  %1").arg(empire_fmt_time(secs)));
+		onAirLabel->setStyleSheet("color:#E50914; font-weight:bold;");
 	} else {
-		status = QStringLiteral("<span style='color:#808080;'>○ Offline</span>");
+		onAirLabel->setText(QStringLiteral("○ Offline"));
+		onAirLabel->setStyleSheet("color:#808080; font-weight:bold;");
 	}
-	statusLabel->setText(status);
-
-	const double cpu = os_cpu_usage_info_query(cpu_info);
-	const double fps = obs_get_active_fps();
-	double droppedPct = 0.0;
-	double kbps = 0.0;
-
-	OBSOutputAutoRelease out = obs_frontend_get_streaming_output();
-	if (out) {
-		const int total = obs_output_get_total_frames(out);
-		const int dropped = obs_output_get_frames_dropped(out);
-		if (total < first_total || dropped < first_dropped) {
-			first_total = total;
-			first_dropped = dropped;
-		}
-		const int t = total - first_total;
-		const int d = dropped - first_dropped;
-		droppedPct = t > 0 ? (double)d / (double)t * 100.0 : 0.0;
-
-		const uint64_t bytes = obs_output_get_total_bytes(out);
-		if (lastBytesTime != 0 && now > lastBytesTime) {
-			const double sec = (double)(now - lastBytesTime) / 1000000000.0;
-			const uint64_t db = (bytes >= lastBytes) ? (bytes - lastBytes) : 0;
-			kbps = sec > 0.0 ? (double)(db * 8) / sec / 1000.0 : 0.0;
-		}
-		lastBytes = bytes;
-		lastBytesTime = now;
-	} else {
-		first_total = 0;
-		first_dropped = 0;
-		lastBytes = 0;
-		lastBytesTime = 0;
-	}
-
-	statsLabel->setText(QString("CPU %1%%  ·  FPS %2  ·  Drop %3%%  ·  %4 kb/s")
-				    .arg(QString::number(cpu, 'f', 0))
-				    .arg(QString::number(fps, 'f', 0))
-				    .arg(QString::number(droppedPct, 'f', 1))
-				    .arg(QString::number(kbps, 'f', 0)));
 }
 
 void EmpireCommandDock::OBSFrontendEvent(enum obs_frontend_event event, void *ptr)
@@ -177,6 +178,11 @@ void EmpireCommandDock::OBSFrontendEvent(enum obs_frontend_event event, void *pt
 	case OBS_FRONTEND_EVENT_STUDIO_MODE_ENABLED:
 	case OBS_FRONTEND_EVENT_STUDIO_MODE_DISABLED:
 		dock->UpdateButtons();
+		break;
+	case OBS_FRONTEND_EVENT_PROFILE_CHANGED:
+	case OBS_FRONTEND_EVENT_SCENE_COLLECTION_CHANGED:
+	case OBS_FRONTEND_EVENT_FINISHED_LOADING:
+		dock->UpdateInfo();
 		break;
 	default:
 		break;
