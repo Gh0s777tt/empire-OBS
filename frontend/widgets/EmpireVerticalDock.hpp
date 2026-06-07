@@ -104,6 +104,8 @@ class EmpireVerticalDock : public QFrame {
 	void UpdateStreamButton();
 	void LoadConfig();
 	void SaveConfig();
+	void SaveLayout();
+	void LoadLayout();
 
 	/* editing helpers */
 	bool WidgetToCanvas(const QPointF &pos, float &cx, float &cy) const;

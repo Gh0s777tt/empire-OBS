@@ -144,6 +144,7 @@ EmpireVerticalDock::EmpireVerticalDock(QWidget *parent) : QFrame(parent)
 	UpdateRecordButton();
 	UpdateStreamButton();
 	SyncToCurrentScene();
+	LoadLayout();
 	obs_frontend_add_event_callback(OBSFrontendEvent, this);
 
 	setObjectName(QStringLiteral("empireVerticalDock"));
@@ -152,6 +153,8 @@ EmpireVerticalDock::EmpireVerticalDock(QWidget *parent) : QFrame(parent)
 EmpireVerticalDock::~EmpireVerticalDock()
 {
 	obs_frontend_remove_event_callback(OBSFrontendEvent, this);
+
+	SaveLayout();
 
 	/* Stop the recording + stream (they use the canvas video) before any teardown. */
 	if (recordOutput) {
@@ -574,6 +577,100 @@ void EmpireVerticalDock::SaveConfig()
 	config_set_string(cfg, "EmpireVertical", "StreamURL", urlEdit->text().toUtf8().constData());
 	config_set_string(cfg, "EmpireVertical", "StreamKey", keyEdit->text().toUtf8().constData());
 	config_save_safe(cfg, "tmp", nullptr);
+}
+
+void EmpireVerticalDock::SaveLayout()
+{
+	config_t *cfg = obs_frontend_get_profile_config();
+	if (!cfg || !vScene)
+		return;
+
+	OBSDataArrayAutoRelease arr = obs_data_array_create();
+	struct Ctx {
+		obs_data_array_t *arr;
+		obs_sceneitem_t *mirror;
+	} ctx = {arr, mirrorItem};
+
+	obs_scene_enum_items(
+		vScene,
+		[](obs_scene_t *, obs_sceneitem_t *item, void *p) -> bool {
+			Ctx *c = static_cast<Ctx *>(p);
+			const bool isMirror = (item == c->mirror);
+			OBSDataAutoRelease d = obs_data_create();
+			obs_data_set_bool(d, "is_mirror", isMirror);
+			if (!isMirror) {
+				OBSDataAutoRelease sd = obs_save_source(obs_sceneitem_get_source(item));
+				obs_data_set_obj(d, "source", sd);
+			}
+			struct vec2 pos, scale;
+			obs_sceneitem_get_pos(item, &pos);
+			obs_sceneitem_get_scale(item, &scale);
+			obs_data_set_double(d, "pos_x", pos.x);
+			obs_data_set_double(d, "pos_y", pos.y);
+			obs_data_set_double(d, "scale_x", scale.x);
+			obs_data_set_double(d, "scale_y", scale.y);
+			obs_data_set_int(d, "bounds_type", obs_sceneitem_get_bounds_type(item));
+			obs_data_set_int(d, "alignment", (long long)obs_sceneitem_get_alignment(item));
+			obs_data_array_push_back(c->arr, d);
+			return true;
+		},
+		&ctx);
+
+	OBSDataAutoRelease root = obs_data_create();
+	obs_data_set_array(root, "items", arr);
+	obs_data_set_bool(root, "custom", customMode);
+	config_set_string(cfg, "EmpireVertical", "Layout", obs_data_get_json(root));
+	config_save_safe(cfg, "tmp", nullptr);
+}
+
+void EmpireVerticalDock::LoadLayout()
+{
+	config_t *cfg = obs_frontend_get_profile_config();
+	if (!cfg || !vScene)
+		return;
+	const char *json = config_get_string(cfg, "EmpireVertical", "Layout");
+	if (!json || !*json)
+		return;
+	OBSDataAutoRelease root = obs_data_create_from_json(json);
+	if (!root)
+		return;
+
+	const bool savedCustom = obs_data_get_bool(root, "custom");
+	OBSDataArrayAutoRelease arr = obs_data_get_array(root, "items");
+	const size_t count = arr ? obs_data_array_count(arr) : 0;
+
+	for (size_t i = 0; i < count; i++) {
+		OBSDataAutoRelease d = obs_data_array_item(arr, i);
+		obs_sceneitem_t *item = nullptr;
+		if (obs_data_get_bool(d, "is_mirror")) {
+			item = mirrorItem;
+		} else {
+			OBSDataAutoRelease sd = obs_data_get_obj(d, "source");
+			obs_source_t *src = sd ? obs_load_source(sd) : nullptr;
+			if (!src)
+				continue;
+			item = obs_scene_add(vScene, src);
+			obs_source_release(src);
+			selectedItem = item;
+		}
+		if (!item)
+			continue;
+
+		struct vec2 pos, scale;
+		pos.x = (float)obs_data_get_double(d, "pos_x");
+		pos.y = (float)obs_data_get_double(d, "pos_y");
+		scale.x = (float)obs_data_get_double(d, "scale_x");
+		scale.y = (float)obs_data_get_double(d, "scale_y");
+		obs_sceneitem_set_bounds_type(item, (enum obs_bounds_type)obs_data_get_int(d, "bounds_type"));
+		obs_sceneitem_set_alignment(item, (uint32_t)obs_data_get_int(d, "alignment"));
+		obs_sceneitem_set_pos(item, &pos);
+		obs_sceneitem_set_scale(item, &scale);
+	}
+
+	if (savedCustom) {
+		customMode = true;
+		UpdateCustomButton();
+	}
 }
 
 void EmpireVerticalDock::OBSFrontendEvent(enum obs_frontend_event event, void *ptr)
