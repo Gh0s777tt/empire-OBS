@@ -1,0 +1,515 @@
+@OBSThemeMeta {
+    name: 'Empire Modern';
+    id: 'com.empireobs.Modern';
+    extends: 'com.empireobs.Netflix';
+    author: 'Empire OBS';
+    dark: 'true';
+}
+
+@OBSThemeVars {
+    /* Deeper, more cinematic surface ramp + bigger radii for a 2024 feel. */
+    --border_radius: 10px;
+    --border_radius_small: 7px;
+    --border_radius_large: 14px;
+
+    --bg_window: #0A0A0A;
+    --bg_base: #121212;
+    --bg_preview: #000000;
+
+    --border_color: #242424;
+}
+
+/* ============================================================
+ *  EMPIRE MODERN — bold, cinematic, premium-streaming look
+ * ============================================================ */
+
+* {
+    font-family: "Segoe UI Variable Display", "Segoe UI", "Inter", "SF Pro Display", "Roboto", sans-serif;
+}
+
+QWidget {
+    font-size: 12px;
+}
+
+QMainWindow,
+QDialog {
+    background-color: #0A0A0A;
+}
+
+/* ---------- Docks as elevated cards ---------- */
+QDockWidget {
+    font-weight: 600;
+}
+
+QDockWidget::title {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #1C1C1C, stop:1 #141414);
+    padding: 9px 12px;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    border-bottom: 1px solid #262626;
+}
+
+/* ---------- Buttons: flat, rounded, smooth ---------- */
+QPushButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #232323, stop:1 #1B1B1B);
+    border: 1px solid #2C2C2C;
+    border-radius: 9px;
+    padding: 7px 16px;
+    color: #FFFFFF;
+    font-weight: 500;
+    min-height: 16px;
+}
+
+QPushButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #2E2E2E, stop:1 #242424);
+    border-color: #3C3C3C;
+}
+
+QPushButton:pressed {
+    background: #161616;
+}
+
+QPushButton:disabled {
+    color: #5A5A5A;
+    background: #141414;
+    border-color: #1E1E1E;
+}
+
+QPushButton:checked {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #F40612, stop:1 #B20710);
+    border-color: #E50914;
+    color: #FFFFFF;
+}
+
+/* Primary control buttons (stream / record …) glow red when live. */
+#streamButton.state-active,
+#recordButton.state-active,
+#pauseRecordButton.state-active,
+#replayBufferButton.state-active,
+#virtualCamButton.state-active,
+#broadcastButton.state-active {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FF1A28, stop:1 #B20710);
+    border-color: #FF5C66;
+    color: #FFFFFF;
+}
+
+/* ---------- Inputs ---------- */
+QLineEdit,
+QComboBox,
+QSpinBox,
+QDoubleSpinBox,
+QPlainTextEdit,
+QTextEdit {
+    background-color: #1A1A1A;
+    border: 1px solid #2A2A2A;
+    border-radius: 8px;
+    padding: 6px 10px;
+    color: #FFFFFF;
+    selection-background-color: #E50914;
+}
+
+QLineEdit:focus,
+QComboBox:focus,
+QSpinBox:focus,
+QDoubleSpinBox:focus,
+QPlainTextEdit:focus,
+QTextEdit:focus {
+    border-color: #E50914;
+}
+
+QComboBox::drop-down {
+    border: none;
+    width: 22px;
+}
+
+/* ---------- Scene / source / generic lists ---------- */
+.list-grid SceneTree::item,
+SourceTree::item,
+QListView::item,
+QTreeView::item {
+    padding: 6px 8px;
+    border-radius: 7px;
+    margin: 1px 4px;
+}
+
+.list-grid SceneTree::item:hover,
+SourceTree::item:hover,
+QListView::item:hover,
+QTreeView::item:hover {
+    background-color: #242424;
+}
+
+.list-grid SceneTree::item:selected,
+SourceTree::item:selected,
+QListView::item:selected,
+QTreeView::item:selected {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #E50914, stop:1 #B20710);
+    color: #FFFFFF;
+}
+
+/* ---------- Tabs: modern underline ---------- */
+QTabBar::tab {
+    background: transparent;
+    padding: 9px 18px;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: #B3B3B3;
+}
+
+QTabBar::tab:hover {
+    color: #FFFFFF;
+}
+
+QTabBar::tab:selected {
+    color: #FFFFFF;
+    border-bottom: 2px solid #E50914;
+}
+
+/* ---------- Scrollbars: thin, rounded, accent on hover ---------- */
+QScrollBar:vertical {
+    background: transparent;
+    width: 12px;
+    margin: 2px;
+}
+
+QScrollBar::handle:vertical {
+    background: #333333;
+    border-radius: 5px;
+    min-height: 36px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: #E50914;
+}
+
+QScrollBar:horizontal {
+    background: transparent;
+    height: 12px;
+    margin: 2px;
+}
+
+QScrollBar::handle:horizontal {
+    background: #333333;
+    border-radius: 5px;
+    min-width: 36px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background: #E50914;
+}
+
+QScrollBar::add-line,
+QScrollBar::sub-line {
+    width: 0;
+    height: 0;
+}
+
+QScrollBar::add-page,
+QScrollBar::sub-page {
+    background: transparent;
+}
+
+/* ---------- Menus ---------- */
+QMenu {
+    background-color: #161616;
+    border: 1px solid #2A2A2A;
+    border-radius: 12px;
+    padding: 6px;
+}
+
+QMenu::item {
+    padding: 8px 28px 8px 14px;
+    border-radius: 7px;
+}
+
+QMenu::item:selected {
+    background-color: #E50914;
+}
+
+QMenu::separator {
+    height: 1px;
+    background-color: #242424;
+    margin: 6px 10px;
+}
+
+QMenuBar {
+    background-color: #0A0A0A;
+    padding: 2px;
+}
+
+QMenuBar::item {
+    padding: 6px 12px;
+    border-radius: 7px;
+}
+
+QMenuBar::item:selected {
+    background-color: #1E1E1E;
+}
+
+/* ---------- Group boxes ---------- */
+QGroupBox {
+    border: 1px solid #242424;
+    border-radius: 12px;
+    margin-top: 14px;
+    padding: 12px;
+    font-weight: 600;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 12px;
+    padding: 0 6px;
+    color: #B3B3B3;
+}
+
+/* ---------- Checkboxes / radios ---------- */
+QCheckBox::indicator,
+QRadioButton::indicator {
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    border: 1px solid #3A3A3A;
+    background: #1A1A1A;
+}
+
+QRadioButton::indicator {
+    border-radius: 9px;
+}
+
+QCheckBox::indicator:checked,
+QRadioButton::indicator:checked {
+    background: #E50914;
+    border-color: #E50914;
+}
+
+/* ---------- Sliders ---------- */
+QSlider::groove:horizontal {
+    height: 4px;
+    background: #2A2A2A;
+    border-radius: 2px;
+}
+
+QSlider::handle:horizontal {
+    background: #FFFFFF;
+    width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    margin: -6px 0;
+}
+
+QSlider::sub-page:horizontal {
+    background: #E50914;
+    border-radius: 2px;
+}
+
+/* ---------- Tooltips ---------- */
+QToolTip {
+    background-color: #1E1E1E;
+    color: #FFFFFF;
+    border: 1px solid #E50914;
+    border-radius: 8px;
+    padding: 6px 10px;
+}
+
+/* ---------- Status bar ---------- */
+QStatusBar {
+    background-color: #0A0A0A;
+    border-top: 1px solid #1E1E1E;
+}
+
+/* ---------- Preview: pure cinematic black ---------- */
+OBSQTDisplay {
+    qproperty-displayBackgroundColor: #000000;
+}
+
+/* ---------- Mixer volume meter: modern gradient ---------- */
+VolumeMeter {
+    qproperty-backgroundNominalColor: #15401C;
+    qproperty-backgroundWarningColor: #5A4520;
+    qproperty-backgroundErrorColor: #4A1010;
+    qproperty-foregroundNominalColor: #2ECC71;
+    qproperty-foregroundWarningColor: #EABC48;
+    qproperty-foregroundErrorColor: #E50914;
+    qproperty-magnitudeColor: #FFFFFF;
+}
+
+/* ============================================================
+ *  EMPIRE MODERN — pass 2: tool controls, settings, depth
+ * ============================================================ */
+
+/* ---------- Tool buttons (list toolbars, dock tools) ---------- */
+QToolButton {
+    background: #1B1B1B;
+    border: 1px solid #2A2A2A;
+    border-radius: 8px;
+    padding: 6px;
+    color: #FFFFFF;
+}
+
+QToolButton:hover {
+    background: #2A2A2A;
+    border-color: #3C3C3C;
+}
+
+QToolButton:pressed {
+    background: #161616;
+}
+
+QToolButton:checked {
+    background: #E50914;
+    border-color: #E50914;
+}
+
+QToolButton::menu-indicator {
+    image: none;
+}
+
+QToolBar {
+    background: transparent;
+    border: none;
+    spacing: 4px;
+    padding: 4px;
+}
+
+QToolBar::separator {
+    background: #242424;
+    width: 1px;
+    margin: 4px 6px;
+}
+
+/* ---------- Combo dropdown popup ---------- */
+QComboBox QAbstractItemView {
+    background: #161616;
+    border: 1px solid #2A2A2A;
+    border-radius: 10px;
+    padding: 4px;
+    selection-background-color: #E50914;
+    outline: none;
+}
+
+/* ---------- Spin buttons ---------- */
+QSpinBox::up-button,
+QDoubleSpinBox::up-button,
+QSpinBox::down-button,
+QDoubleSpinBox::down-button {
+    width: 18px;
+    border: none;
+    background: transparent;
+}
+
+QSpinBox::up-button:hover,
+QDoubleSpinBox::up-button:hover,
+QSpinBox::down-button:hover,
+QDoubleSpinBox::down-button:hover {
+    background: #2A2A2A;
+    border-radius: 5px;
+}
+
+/* ---------- Settings: the left navigation list ---------- */
+OBSBasicSettings QListWidget {
+    background: #0E0E0E;
+    border: none;
+    border-radius: 12px;
+    padding: 6px;
+    outline: none;
+}
+
+OBSBasicSettings QListWidget::item {
+    padding: 10px 14px;
+    border-radius: 9px;
+    margin: 2px 4px;
+    color: #B3B3B3;
+}
+
+OBSBasicSettings QListWidget::item:hover {
+    background: #1C1C1C;
+    color: #FFFFFF;
+}
+
+OBSBasicSettings QListWidget::item:selected {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #E50914, stop:1 #B20710);
+    color: #FFFFFF;
+}
+
+/* ---------- Table / tree headers ---------- */
+QHeaderView::section {
+    background: #161616;
+    color: #B3B3B3;
+    padding: 8px 10px;
+    border: none;
+    border-right: 1px solid #222222;
+    font-weight: 600;
+}
+
+QTableView,
+QTreeView {
+    background: #121212;
+    border: 1px solid #222222;
+    border-radius: 10px;
+    gridline-color: #1E1E1E;
+    outline: none;
+}
+
+/* ---------- Progress bars ---------- */
+QProgressBar {
+    background: #1A1A1A;
+    border: none;
+    border-radius: 6px;
+    min-height: 10px;
+    text-align: center;
+    color: #FFFFFF;
+}
+
+QProgressBar::chunk {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #F40612, stop:1 #B20710);
+    border-radius: 6px;
+}
+
+/* ---------- Tab widget pane ---------- */
+QTabWidget::pane {
+    border: 1px solid #222222;
+    border-radius: 12px;
+    top: -1px;
+}
+
+/* ---------- Splitter ---------- */
+QSplitter::handle {
+    background: transparent;
+}
+
+QSplitter::handle:hover {
+    background: #E50914;
+}
+
+QSplitter::handle:horizontal {
+    width: 4px;
+}
+
+QSplitter::handle:vertical {
+    height: 4px;
+}
+
+/* ---------- Dock title buttons ---------- */
+QDockWidget::close-button,
+QDockWidget::float-button {
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    padding: 3px;
+}
+
+QDockWidget::float-button:hover {
+    background: #2A2A2A;
+}
+
+QDockWidget::close-button:hover {
+    background: #E50914;
+}
+
+/* ---------- Dividers ---------- */
+QFrame[frameShape="4"],
+QFrame[frameShape="5"] {
+    color: #242424;
+    background: #242424;
+    max-height: 1px;
+}
