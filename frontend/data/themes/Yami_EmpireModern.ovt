@@ -513,3 +513,65 @@ QFrame[frameShape="5"] {
     background: #242424;
     max-height: 1px;
 }
+
+/* ============================================================
+ *  EMPIRE MODERN — pass 3: controls, mixer, final polish
+ * ============================================================ */
+
+/* ---------- Main control buttons: prominent + modern ---------- */
+#streamButton,
+#recordButton,
+#pauseRecordButton,
+#replayBufferButton,
+#virtualCamButton,
+#modeSwitch,
+#broadcastButton {
+    min-height: 30px;
+    border-radius: 9px;
+    font-weight: 600;
+    padding: 8px 12px;
+}
+
+/* ---------- Mixer volume slider ---------- */
+VolumeSlider::groove:horizontal,
+SliderIgnoreScroll::groove:horizontal {
+    height: 4px;
+    background: #2A2A2A;
+    border-radius: 2px;
+}
+
+VolumeSlider::handle:horizontal,
+SliderIgnoreScroll::handle:horizontal {
+    background: #FFFFFF;
+    width: 14px;
+    height: 14px;
+    border-radius: 7px;
+    margin: -5px 0;
+}
+
+VolumeSlider::sub-page:horizontal,
+SliderIgnoreScroll::sub-page:horizontal {
+    background: #E50914;
+    border-radius: 2px;
+}
+
+/* ---------- Scene / source toolbars on a subtle bar ---------- */
+QToolBar {
+    background: #141414;
+    border-radius: 8px;
+}
+
+/* ---------- Final polish ---------- */
+QDialogButtonBox QPushButton {
+    min-width: 84px;
+}
+
+QComboBox,
+QSpinBox,
+QDoubleSpinBox {
+    min-height: 18px;
+}
+
+QLabel:disabled {
+    color: #5A5A5A;
+}
