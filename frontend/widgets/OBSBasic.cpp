@@ -45,6 +45,7 @@
 #include <utility/WhatsNewInfoThread.hpp>
 #endif
 #include <widgets/AudioMixer.hpp>
+#include <widgets/EmpireCommandDock.hpp>
 #include <widgets/EmpireMultistreamDock.hpp>
 #include <widgets/EmpirePerfDock.hpp>
 #include <widgets/EmpireVerticalDock.hpp>
@@ -1368,6 +1369,9 @@ void OBSBasic::OBSInit()
 void OBSBasic::OnFirstLoad()
 {
 	OnEvent(OBS_FRONTEND_EVENT_FINISHED_LOADING);
+
+	/* Empire-OBS: register the Command Center bar (UI rebuild phase 1). */
+	obs_frontend_add_dock_by_id("empire_command_dock", "Empire Command Center", new EmpireCommandDock());
 
 	/* Empire-OBS: register the built-in performance / stream-health dock (#8). */
 	obs_frontend_add_dock_by_id("empire_perf_dock", "Empire Performance", new EmpirePerfDock());
