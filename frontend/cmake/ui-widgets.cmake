@@ -18,6 +18,8 @@ target_sources(
     widgets/EmpireAudioDock.hpp
     widgets/EmpireCommandDock.cpp
     widgets/EmpireCommandDock.hpp
+    widgets/EmpireControlsDock.cpp
+    widgets/EmpireControlsDock.hpp
     widgets/EmpireMultistreamDock.cpp
     widgets/EmpireMultistreamDock.hpp
     widgets/EmpirePerfDock.cpp

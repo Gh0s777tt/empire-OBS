@@ -40,6 +40,7 @@ jobs:
             --quiet --error-exitcode=0 \
             frontend/widgets/EmpireAudioDock.cpp \
             frontend/widgets/EmpireCommandDock.cpp \
+            frontend/widgets/EmpireControlsDock.cpp \
             frontend/widgets/EmpirePerfDock.cpp \
             frontend/widgets/EmpireMultistreamDock.cpp \
             frontend/widgets/EmpireScenesDock.cpp \

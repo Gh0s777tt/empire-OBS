@@ -47,6 +47,7 @@
 #include <widgets/AudioMixer.hpp>
 #include <widgets/EmpireAudioDock.hpp>
 #include <widgets/EmpireCommandDock.hpp>
+#include <widgets/EmpireControlsDock.hpp>
 #include <widgets/EmpireMultistreamDock.hpp>
 #include <widgets/EmpirePerfDock.hpp>
 #include <widgets/EmpireScenesDock.hpp>
@@ -1394,6 +1395,9 @@ void OBSBasic::OnFirstLoad()
 	/* Empire-OBS: register the modern sources panel (UI rebuild phase 4). */
 	obs_frontend_add_dock_by_id("empire_sources_dock", "Empire Sources", new EmpireSourcesDock());
 
+	/* Empire-OBS: register the controls panel — the mockup's "Kontrolki" card (UI rebuild phase 5). */
+	obs_frontend_add_dock_by_id("empire_controls_dock", "Empire Controls", new EmpireControlsDock());
+
 	/* Empire-OBS: one-time welcome on the very first launch. */
 	{
 		config_t *uc = App()->GetUserConfig();
@@ -1418,6 +1422,66 @@ void OBSBasic::OnFirstLoad()
 				"<a style='color:#E50914;' href='https://github.com/Gh0s777tt/empire-OBS/wiki'>Wiki</a>.</p>"));
 			welcome.setStandardButtons(QMessageBox::Ok);
 			welcome.exec();
+		}
+	}
+
+	/* Empire-OBS: default to the cinematic mockup layout — a top Command bar
+	 * plus a bottom row of Scenes / Sources / Audio / Controls. These frontend
+	 * docks are registered here, AFTER OBSInit's restoreState(), so OBS never
+	 * positions them (the API leaves every frontend dock hidden + floating). We
+	 * arrange them once on first run, then re-apply the saved DockState on later
+	 * runs once the docks exist again. Fully reversible via Docks -> Reset UI. */
+	{
+		config_t *uc = App()->GetUserConfig();
+		QDockWidget *cmd = findChild<QDockWidget *>("empire_command_dock");
+		QDockWidget *scenes = findChild<QDockWidget *>("empire_scenes_dock");
+		QDockWidget *sources = findChild<QDockWidget *>("empire_sources_dock");
+		QDockWidget *audio = findChild<QDockWidget *>("empire_audio_dock");
+		QDockWidget *controls = findChild<QDockWidget *>("empire_controls_dock");
+
+		const bool haveAll = uc && cmd && scenes && sources && audio && controls;
+
+		if (haveAll && !config_get_bool(uc, "EmpireOBS", "LayoutApplied")) {
+			/* Replace the native side/bottom docks with the Empire set. */
+			ui->scenesDock->setVisible(false);
+			ui->sourcesDock->setVisible(false);
+			ui->mixerDock->setVisible(false);
+			ui->transitionsDock->setVisible(false);
+			controlsDock->setVisible(false);
+			statsDock->setVisible(false);
+
+			/* Command bar across the top. */
+			cmd->setFloating(false);
+			addDockWidget(Qt::TopDockWidgetArea, cmd);
+			cmd->setVisible(true);
+
+			/* Bottom row: Scenes | Sources | Audio | Controls. */
+			const QList<QDockWidget *> row{scenes, sources, audio, controls};
+			for (QDockWidget *d : row) {
+				d->setFloating(false);
+				d->setVisible(true);
+			}
+			addDockWidget(Qt::BottomDockWidgetArea, scenes);
+			splitDockWidget(scenes, sources, Qt::Horizontal);
+			splitDockWidget(sources, audio, Qt::Horizontal);
+			splitDockWidget(audio, controls, Qt::Horizontal);
+
+			const int rowH = height() * 26 / 100;
+			const int rowW = width() / 4;
+			resizeDocks(row, {rowH, rowH, rowH, rowH}, Qt::Vertical);
+			resizeDocks(row, {rowW, rowW, rowW, rowW}, Qt::Horizontal);
+
+			config_set_bool(uc, "EmpireOBS", "LayoutApplied", true);
+			config_set_string(uc, "BasicWindow", "DockState", saveState().toBase64().constData());
+			config_save_safe(uc, "tmp", nullptr);
+		} else if (haveAll) {
+			/* Later runs: the Empire docks were created after OBSInit's
+			 * restoreState(), so re-apply the saved layout to place them. */
+			const char *ds = config_get_string(uc, "BasicWindow", "DockState");
+			if (ds) {
+				QByteArray st = QByteArray::fromBase64(QByteArray(ds));
+				restoreState(st);
+			}
 		}
 	}
 
