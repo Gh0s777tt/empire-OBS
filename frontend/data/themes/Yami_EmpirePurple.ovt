@@ -1,0 +1,25 @@
+@OBSThemeMeta {
+    name: 'Empire Purple';
+    id: 'com.empireobs.Purple';
+    extends: 'com.empireobs.Netflix';
+    author: 'Empire OBS';
+    dark: 'true';
+}
+
+@OBSThemeVars {
+    /* Royal purple accent — LIVE controls stay red by convention. */
+    --red1: #CB9CFB;
+    --red2: #B975F9;
+    --red3: #A855F7;
+    --red4: #7E3FC0;
+    --red5: #5B2C8A;
+    --red6: #3E1D5E;
+
+    --primary: #A855F7;
+    --primary_light: #B975F9;
+    --primary_lighter: #CB9CFB;
+    --primary_dark: #7E3FC0;
+    --primary_darker: #5B2C8A;
+
+    --highlight_color: var(--primary);
+}

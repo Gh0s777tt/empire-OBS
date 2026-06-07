@@ -1378,6 +1378,33 @@ void OBSBasic::OnFirstLoad()
 	/* Empire-OBS: register the vertical 9:16 preview dock (#6). */
 	obs_frontend_add_dock_by_id("empire_vertical_dock", "Empire Vertical 9:16", new EmpireVerticalDock());
 
+	/* Empire-OBS: one-time welcome on the very first launch. */
+	{
+		config_t *uc = App()->GetUserConfig();
+		if (uc && !config_get_bool(uc, "EmpireOBS", "WelcomeShown")) {
+			config_set_bool(uc, "EmpireOBS", "WelcomeShown", true);
+			config_save_safe(uc, "tmp", nullptr);
+			QMessageBox welcome(this);
+			welcome.setWindowTitle(QStringLiteral("Empire-OBS"));
+			welcome.setTextFormat(Qt::RichText);
+			welcome.setText(QStringLiteral(
+				"<h2 style='color:#E50914;'>Empire-OBS</h2>"
+				"<p>A cinematic, Netflix-styled fork of OBS Studio.</p>"
+				"<p style='color:#B3B3B3;'>What's inside:</p>"
+				"<ul>"
+				"<li><b>Netflix theme</b> &mdash; pick the accent in <i>Settings &rarr; Appearance</i> "
+				"(Red / Blue / Purple / Green / AMOLED / Light)</li>"
+				"<li><b>Vertical 9:16</b> &mdash; preview, compose, record &amp; stream a portrait output</li>"
+				"<li><b>Multistream</b> &mdash; go live to several platforms at once</li>"
+				"<li><b>Performance dock</b> &mdash; live CPU / FPS / stream-health</li>"
+				"</ul>"
+				"<p>Enable them from <b>View &rarr; Docks</b>. Full guide on the "
+				"<a style='color:#E50914;' href='https://github.com/Gh0s777tt/empire-OBS/wiki'>Wiki</a>.</p>"));
+			welcome.setStandardButtons(QMessageBox::Ok);
+			welcome.exec();
+		}
+	}
+
 #ifdef WHATSNEW_ENABLED
 	/* Attempt to load init screen if available */
 	if (cef) {

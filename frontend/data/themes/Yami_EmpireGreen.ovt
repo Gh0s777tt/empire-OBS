@@ -1,0 +1,25 @@
+@OBSThemeMeta {
+    name: 'Empire Green';
+    id: 'com.empireobs.Green';
+    extends: 'com.empireobs.Netflix';
+    author: 'Empire OBS';
+    dark: 'true';
+}
+
+@OBSThemeVars {
+    /* Emerald accent — LIVE controls stay red by convention. */
+    --red1: #7FE5A8;
+    --red2: #4FD98A;
+    --red3: #2ECC71;
+    --red4: #239C56;
+    --red5: #18703D;
+    --red6: #0F4D29;
+
+    --primary: #2ECC71;
+    --primary_light: #4FD98A;
+    --primary_lighter: #7FE5A8;
+    --primary_dark: #239C56;
+    --primary_darker: #18703D;
+
+    --highlight_color: var(--primary);
+}
