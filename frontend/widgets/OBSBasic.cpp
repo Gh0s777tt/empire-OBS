@@ -48,6 +48,7 @@
 #include <widgets/EmpireCommandDock.hpp>
 #include <widgets/EmpireMultistreamDock.hpp>
 #include <widgets/EmpirePerfDock.hpp>
+#include <widgets/EmpireScenesDock.hpp>
 #include <widgets/EmpireVerticalDock.hpp>
 #include <widgets/OBSProjector.hpp>
 
@@ -1381,6 +1382,9 @@ void OBSBasic::OnFirstLoad()
 
 	/* Empire-OBS: register the vertical 9:16 preview dock (#6). */
 	obs_frontend_add_dock_by_id("empire_vertical_dock", "Empire Vertical 9:16", new EmpireVerticalDock());
+
+	/* Empire-OBS: register the modern scene switcher (UI rebuild phase 2). */
+	obs_frontend_add_dock_by_id("empire_scenes_dock", "Empire Scenes", new EmpireScenesDock());
 
 	/* Empire-OBS: one-time welcome on the very first launch. */
 	{

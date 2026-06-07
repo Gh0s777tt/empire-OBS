@@ -28,7 +28,7 @@ jobs:
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq clang-format-18
           clang-format-18 --version
-          files="frontend/widgets/EmpireCommandDock.cpp frontend/widgets/EmpireCommandDock.hpp frontend/widgets/EmpirePerfDock.cpp frontend/widgets/EmpirePerfDock.hpp frontend/widgets/EmpireMultistreamDock.cpp frontend/widgets/EmpireMultistreamDock.hpp frontend/widgets/EmpireVerticalDock.cpp frontend/widgets/EmpireVerticalDock.hpp"
+          files="frontend/widgets/EmpireCommandDock.cpp frontend/widgets/EmpireCommandDock.hpp frontend/widgets/EmpirePerfDock.cpp frontend/widgets/EmpirePerfDock.hpp frontend/widgets/EmpireMultistreamDock.cpp frontend/widgets/EmpireMultistreamDock.hpp frontend/widgets/EmpireScenesDock.cpp frontend/widgets/EmpireScenesDock.hpp frontend/widgets/EmpireVerticalDock.cpp frontend/widgets/EmpireVerticalDock.hpp"
           clean=1
           for f in $files; do
             if clang-format-18 --dry-run --Werror "$f" 2>/dev/null; then

@@ -20,6 +20,8 @@ target_sources(
     widgets/EmpireMultistreamDock.hpp
     widgets/EmpirePerfDock.cpp
     widgets/EmpirePerfDock.hpp
+    widgets/EmpireScenesDock.cpp
+    widgets/EmpireScenesDock.hpp
     widgets/EmpireVerticalDock.cpp
     widgets/EmpireVerticalDock.hpp
     widgets/OBSBasic.cpp
