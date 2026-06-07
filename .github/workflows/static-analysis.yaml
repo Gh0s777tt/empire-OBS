@@ -1,0 +1,52 @@
+name: 🔬 Static Analysis
+
+# Informational cppcheck pass over the Empire-added C++ sources. Catches null
+# dereferences, uninitialised reads, leaks and dead code that a visual review
+# (or a blind build) can miss. Does not block — reports to the run summary.
+
+on:
+  push:
+    branches: [empire/main]
+    paths:
+      - "frontend/widgets/Empire*"
+      - ".github/workflows/static-analysis.yaml"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cppcheck:
+    name: cppcheck (Empire sources)
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔬 Run cppcheck
+        shell: bash
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq cppcheck
+          cppcheck --version
+          cppcheck \
+            --enable=warning,performance,portability \
+            --inline-suppr \
+            --suppress=missingInclude \
+            --suppress=missingIncludeSystem \
+            --suppress=unknownMacro \
+            --suppress=unmatchedSuppression \
+            --std=c++17 --language=c++ \
+            --quiet --error-exitcode=0 \
+            frontend/widgets/EmpirePerfDock.cpp \
+            frontend/widgets/EmpireMultistreamDock.cpp \
+            frontend/widgets/EmpireVerticalDock.cpp \
+            2>&1 | tee cppcheck.txt
+          echo "### 🔬 cppcheck — Empire sources" >> "$GITHUB_STEP_SUMMARY"
+          if [ -s cppcheck.txt ]; then
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            cat cppcheck.txt >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "✅ No findings." >> "$GITHUB_STEP_SUMMARY"
+          fi

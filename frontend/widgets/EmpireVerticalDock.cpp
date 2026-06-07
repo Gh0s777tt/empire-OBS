@@ -122,7 +122,8 @@ EmpireVerticalDock::EmpireVerticalDock(QWidget *parent) : QFrame(parent)
 
 	if (canvas) {
 		vScene = obs_canvas_scene_create(canvas, "Empire Vertical");
-		obs_canvas_set_channel(canvas, 0, obs_scene_get_source(vScene));
+		if (vScene)
+			obs_canvas_set_channel(canvas, 0, obs_scene_get_source(vScene));
 	}
 
 	display = new EmpireVerticalDisplay(this);
@@ -439,12 +440,15 @@ void EmpireVerticalDock::StartRecording()
 	recordVEnc = obs_video_encoder_create(empire_pick_video_encoder(), "empire_vert_venc", vset, nullptr);
 	if (!recordVEnc)
 		recordVEnc = obs_video_encoder_create("obs_x264", "empire_vert_venc", vset, nullptr);
+	if (!recordVEnc)
+		return;
 	obs_encoder_set_video(recordVEnc, vid);
 
 	OBSDataAutoRelease aset = obs_data_create();
 	obs_data_set_int(aset, "bitrate", 160);
 	recordAEnc = obs_audio_encoder_create("ffmpeg_aac", "empire_vert_aenc", aset, 0, nullptr);
-	obs_encoder_set_audio(recordAEnc, obs_get_audio());
+	if (recordAEnc)
+		obs_encoder_set_audio(recordAEnc, obs_get_audio());
 
 	config_t *cfg = obs_frontend_get_profile_config();
 	const char *mode = cfg ? config_get_string(cfg, "Output", "Mode") : nullptr;
@@ -524,12 +528,15 @@ void EmpireVerticalDock::StartStreaming()
 	streamVEnc = obs_video_encoder_create(empire_pick_video_encoder(), "empire_vert_stream_venc", vset, nullptr);
 	if (!streamVEnc)
 		streamVEnc = obs_video_encoder_create("obs_x264", "empire_vert_stream_venc", vset, nullptr);
+	if (!streamVEnc)
+		return;
 	obs_encoder_set_video(streamVEnc, vid);
 
 	OBSDataAutoRelease aset = obs_data_create();
 	obs_data_set_int(aset, "bitrate", 160);
 	streamAEnc = obs_audio_encoder_create("ffmpeg_aac", "empire_vert_stream_aenc", aset, 0, nullptr);
-	obs_encoder_set_audio(streamAEnc, obs_get_audio());
+	if (streamAEnc)
+		obs_encoder_set_audio(streamAEnc, obs_get_audio());
 
 	OBSDataAutoRelease svc = obs_data_create();
 	obs_data_set_string(svc, "server", url.c_str());
@@ -683,6 +690,8 @@ void EmpireVerticalDock::OBSFrontendEvent(enum obs_frontend_event event, void *p
 			dock->SyncToCurrentScene();
 		break;
 	case OBS_FRONTEND_EVENT_FINISHED_LOADING:
+	case OBS_FRONTEND_EVENT_SCENE_COLLECTION_CHANGED:
+		/* The old collection's scenes are gone — re-mirror the new program scene. */
 		dock->SyncToCurrentScene();
 		break;
 	default:
