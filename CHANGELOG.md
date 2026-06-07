@@ -15,6 +15,24 @@ The big remaining ideas are separate projects — see [ROADMAP.md](ROADMAP.md): 
 
 ---
 
+## 🟥 [v0.7.0] — Modern Interface &nbsp;·&nbsp; `Update #011` &nbsp;·&nbsp; 2026-06-08
+
+> *A cinematic command center.*
+
+### ✨ Added
+- **Empire Modern theme** — a bold, cinematic UI overhaul, now the **default** look. `c14ea83` `b107ee7`
+- **Command Center bar** — a top status strip: Empire branding, active profile / scene collection, live CPU + FPS, ON AIR / REC timer, clock, and one-click Go Live / Record / Studio. `4b3c4c6` `741844a`
+- **Scenes panel** — your scenes as one-click cards. `ce6e5b2`
+- **Audio panel** — per-source volume faders + mute, Empire-styled. `70dfafc`
+- **Sources panel** — the current scene's sources as cards with show/hide toggles. `355c805`
+- **Controls panel** — the *Kontrolki* card: Stream · Recording · Replay Buffer · Studio Mode · Settings · Exit, with live state (active outputs light up red). `a5c415f`
+- **Default Empire layout** — on first run the docks arrange themselves into the cinematic layout (a top Command bar + a bottom row of Scenes · Sources · Audio · Controls), replacing the stock docks; fully reversible via **Docks → Reset UI**. `a5c415f`
+
+### 🛡️ Hardened
+- **Vertical 9:16** — null-guarded encoders and a re-sync on scene-collection change; added a cppcheck CI pass over the Empire sources. `d67ef48`
+
+---
+
 ## 🟥 [v0.6.0] — Polish &amp; Personalize &nbsp;·&nbsp; `Update #010` &nbsp;·&nbsp; 2026‑06‑07
 
 > *Make it yours.*
