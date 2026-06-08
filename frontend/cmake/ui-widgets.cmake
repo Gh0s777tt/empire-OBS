@@ -22,6 +22,8 @@ target_sources(
     widgets/EmpireControlsDock.hpp
     widgets/EmpireMultistreamDock.cpp
     widgets/EmpireMultistreamDock.hpp
+    widgets/EmpireNavDock.cpp
+    widgets/EmpireNavDock.hpp
     widgets/EmpirePerfDock.cpp
     widgets/EmpirePerfDock.hpp
     widgets/EmpirePreviewBadges.cpp

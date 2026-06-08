@@ -49,6 +49,7 @@
 #include <widgets/EmpireCommandDock.hpp>
 #include <widgets/EmpireControlsDock.hpp>
 #include <widgets/EmpireMultistreamDock.hpp>
+#include <widgets/EmpireNavDock.hpp>
 #include <widgets/EmpirePerfDock.hpp>
 #include <widgets/EmpirePreviewBadges.hpp>
 #include <widgets/EmpireScenesDock.hpp>
@@ -1404,6 +1405,9 @@ void OBSBasic::OnFirstLoad()
 	/* Empire-OBS: register the quick scene-transition picker. */
 	obs_frontend_add_dock_by_id("empire_transitions_dock", "Empire Transitions", new EmpireTransitionsDock());
 
+	/* Empire-OBS: register the right navigation rail (the mockup's page-nav, safe). */
+	obs_frontend_add_dock_by_id("empire_nav_dock", "Empire Navigation", new EmpireNavDock());
+
 	/* Empire-OBS: seamless card headers — swap each Empire dock's title bar for a
 	 * styled label (no float/close chrome) so the docks read as the mockup's
 	 * cards; the Command bar gets no header at all. Re-applied every run because
@@ -1420,6 +1424,8 @@ void OBSBasic::OnFirstLoad()
 		};
 		if (QDockWidget *cmd = findChild<QDockWidget *>("empire_command_dock"))
 			cmd->setTitleBarWidget(new QWidget(cmd)); /* seamless top bar, no header */
+		if (QDockWidget *nav = findChild<QDockWidget *>("empire_nav_dock"))
+			nav->setTitleBarWidget(new QWidget(nav)); /* seamless side rail, no header */
 		styleHeader("empire_scenes_dock", QStringLiteral("SCENY"));
 		styleHeader("empire_sources_dock", QStringLiteral("ŹRÓDŁA"));
 		styleHeader("empire_audio_dock", QStringLiteral("MIKSER AUDIO"));
@@ -1518,6 +1524,22 @@ void OBSBasic::OnFirstLoad()
 				QByteArray st = QByteArray::fromBase64(QByteArray(ds));
 				restoreState(st);
 			}
+		}
+	}
+
+	/* Empire-OBS: place the right navigation rail once (its own flag so existing
+	 * configs pick it up too); later runs restore it from the saved DockState. */
+	{
+		config_t *uc = App()->GetUserConfig();
+		QDockWidget *nav = findChild<QDockWidget *>("empire_nav_dock");
+		if (uc && nav && !config_get_bool(uc, "EmpireOBS", "NavPlaced")) {
+			nav->setFloating(false);
+			addDockWidget(Qt::RightDockWidgetArea, nav);
+			nav->setVisible(true);
+			resizeDocks({nav}, {150}, Qt::Horizontal);
+			config_set_bool(uc, "EmpireOBS", "NavPlaced", true);
+			config_set_string(uc, "BasicWindow", "DockState", saveState().toBase64().constData());
+			config_save_safe(uc, "tmp", nullptr);
 		}
 	}
 

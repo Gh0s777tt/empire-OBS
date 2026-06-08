@@ -44,6 +44,7 @@ jobs:
             frontend/widgets/EmpirePerfDock.cpp \
             frontend/widgets/EmpirePreviewBadges.cpp \
             frontend/widgets/EmpireMultistreamDock.cpp \
+            frontend/widgets/EmpireNavDock.cpp \
             frontend/widgets/EmpireScenesDock.cpp \
             frontend/widgets/EmpireSourcesDock.cpp \
             frontend/widgets/EmpireTransitionsDock.cpp \
