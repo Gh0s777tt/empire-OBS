@@ -2,6 +2,7 @@
 
 #include <obs-frontend-api.h>
 
+#include <QDockWidget>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
@@ -19,6 +20,12 @@ static QString empire_fmt_time(uint64_t secs)
 	return QString("%1:%2:%3").arg(h, 2, 10, QChar('0')).arg(m, 2, 10, QChar('0')).arg(s, 2, 10, QChar('0'));
 }
 
+static QDockWidget *empire_find_vertical_dock()
+{
+	QWidget *mw = static_cast<QWidget *>(obs_frontend_get_main_window());
+	return mw ? mw->findChild<QDockWidget *>(QStringLiteral("empire_vertical_dock")) : nullptr;
+}
+
 EmpireCommandDock::EmpireCommandDock(QWidget *parent) : QFrame(parent), cpu_info(os_cpu_usage_info_start()), timer(this)
 {
 	QHBoxLayout *layout = new QHBoxLayout(this);
@@ -30,6 +37,30 @@ EmpireCommandDock::EmpireCommandDock(QWidget *parent) : QFrame(parent), cpu_info
 	brandLabel->setText(QStringLiteral(
 		"<span style='font-size:15px; font-weight:800; color:#FFFFFF;'>Empire<span style='color:#E50914;'>OBS</span></span>"));
 	layout->addWidget(brandLabel);
+
+	/* Quick Vertical 9:16 toggle — always on the bar so the 9:16 ↔ normal switch
+	 * is one click away. Shows/hides the Empire Vertical dock; red when active. */
+	verticalBtn = new QPushButton(QStringLiteral("9:16"), this);
+	verticalBtn->setCheckable(true);
+	verticalBtn->setMinimumHeight(32);
+	verticalBtn->setCursor(Qt::PointingHandCursor);
+	verticalBtn->setToolTip(QStringLiteral("Przełącz podgląd Vertical 9:16"));
+	verticalBtn->setStyleSheet(
+		"QPushButton { background:#232323; color:#B3B3B3; font-weight:700; border-radius:9px; padding:0 14px; }"
+		"QPushButton:hover { background:#2C2C2C; color:#FFFFFF; }"
+		"QPushButton:checked { background:#E50914; color:#FFFFFF; }");
+	connect(verticalBtn, &QPushButton::clicked, this, []() {
+		QDockWidget *vdock = empire_find_vertical_dock();
+		if (!vdock)
+			return;
+		const bool show = !vdock->isVisible();
+		vdock->setVisible(show);
+		if (show) {
+			vdock->setFloating(false);
+			vdock->raise();
+		}
+	});
+	layout->addWidget(verticalBtn);
 
 	infoLabel = new QLabel(this);
 	infoLabel->setTextFormat(Qt::RichText);
@@ -155,6 +186,11 @@ void EmpireCommandDock::Update()
 	} else {
 		onAirLabel->setText(QStringLiteral("○ Offline"));
 		onAirLabel->setStyleSheet("color:#808080; font-weight:bold;");
+	}
+
+	if (verticalBtn) {
+		QDockWidget *vdock = empire_find_vertical_dock();
+		verticalBtn->setChecked(vdock && vdock->isVisible());
 	}
 }
 

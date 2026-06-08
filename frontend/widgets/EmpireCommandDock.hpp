@@ -26,6 +26,7 @@ class EmpireCommandDock : public QFrame {
 	QLabel *statsLabel = nullptr;
 	QLabel *onAirLabel = nullptr;
 	QLabel *clockLabel = nullptr;
+	QPushButton *verticalBtn = nullptr;
 	QPushButton *goLiveBtn = nullptr;
 	QPushButton *recordBtn = nullptr;
 	QPushButton *studioBtn = nullptr;

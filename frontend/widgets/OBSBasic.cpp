@@ -65,6 +65,7 @@
 #include <qt-wrappers.hpp>
 
 #include <QActionGroup>
+#include <QLabel>
 #include <QThread>
 #include <QWidgetAction>
 
@@ -1397,6 +1398,31 @@ void OBSBasic::OnFirstLoad()
 
 	/* Empire-OBS: register the controls panel — the mockup's "Kontrolki" card (UI rebuild phase 5). */
 	obs_frontend_add_dock_by_id("empire_controls_dock", "Empire Controls", new EmpireControlsDock());
+
+	/* Empire-OBS: seamless card headers — swap each Empire dock's title bar for a
+	 * styled label (no float/close chrome) so the docks read as the mockup's
+	 * cards; the Command bar gets no header at all. Re-applied every run because
+	 * title-bar widgets are not part of the saved DockState. */
+	{
+		auto styleHeader = [this](const char *id, const QString &text) {
+			QDockWidget *d = findChild<QDockWidget *>(id);
+			if (!d)
+				return;
+			QLabel *h = new QLabel(text, d);
+			h->setStyleSheet("QLabel { background:#141414; color:#E50914; font-weight:800;"
+					 " font-size:11px; padding:7px 12px; border-bottom:2px solid #E50914; }");
+			d->setTitleBarWidget(h);
+		};
+		if (QDockWidget *cmd = findChild<QDockWidget *>("empire_command_dock"))
+			cmd->setTitleBarWidget(new QWidget(cmd)); /* seamless top bar, no header */
+		styleHeader("empire_scenes_dock", QStringLiteral("SCENY"));
+		styleHeader("empire_sources_dock", QStringLiteral("ŹRÓDŁA"));
+		styleHeader("empire_audio_dock", QStringLiteral("MIKSER AUDIO"));
+		styleHeader("empire_controls_dock", QStringLiteral("KONTROLKI"));
+		styleHeader("empire_perf_dock", QStringLiteral("WYDAJNOŚĆ"));
+		styleHeader("empire_multistream_dock", QStringLiteral("MULTISTREAM"));
+		styleHeader("empire_vertical_dock", QStringLiteral("VERTICAL 9:16"));
+	}
 
 	/* Empire-OBS: one-time welcome on the very first launch. */
 	{
