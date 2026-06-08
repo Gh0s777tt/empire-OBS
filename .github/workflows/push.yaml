@@ -21,6 +21,10 @@ jobs:
 
   build-project:
     name: Build 🧱
+    # Empire-OBS: this is upstream OBS' full multi-platform CI; the fork builds
+    # via empire-build.yaml instead, so skip it here (it fails without upstream
+    # secrets/infra and would red-X every release tag). Stays upstream-compatible.
+    if: github.repository_owner == 'obsproject'
     uses: ./.github/workflows/build-project.yaml
     secrets: inherit
     permissions:
