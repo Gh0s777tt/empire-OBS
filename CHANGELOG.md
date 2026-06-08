@@ -15,6 +15,29 @@ The big remaining ideas are separate projects — see [ROADMAP.md](ROADMAP.md): 
 
 ---
 
+## 🟥 [v0.7.1] — Cinematic Polish &nbsp;·&nbsp; `Update #012` &nbsp;·&nbsp; 2026-06-08
+
+> *The mockup, realized.*
+
+### ✨ Added
+- **Preview badges** — a LIVE / REC · resolution · scene pill drawn right over the program preview. `a77c280`
+- **Right navigation rail** — STREAMY / NAGRANIA / SCENY / USTAWIENIA quick-launch (toggle docks · open recordings · Settings). `53ade5f`
+- **Transitions panel** — pick the active scene transition and its duration. `a77c280`
+- **Quick 9:16 toggle** on the Command bar — flip the Vertical preview on/off in one click. `f53c2e5`
+- **Source management** in the Sources card — a *+ Add source* menu plus a right-click Properties / Filters / Remove. `a77c280`
+- **Scene management** in the Scenes card — a *+ New scene* button plus a right-click Rename / Duplicate / Remove. `aef016e`
+- **Audio meters &amp; dB** — a live peak VU bar and a dB readout per source. `aef016e` `a77c280`
+- **Output resolution** on the Command bar, beside CPU / FPS. `a77c280`
+
+### 💅 Changed
+- **Seamless cards** — the Empire docks now wear styled headers (no window chrome) over a unified panel palette, so the whole layout reads as the cinematic mockup. `f53c2e5` `aef016e`
+- Source cards show an eye marker — ◉ shown / ○ hidden. `aef016e`
+
+### 🛠️ CI
+- Inherited upstream workflows (Push, Scheduled) are guarded to skip on forks — no more false red ❌ on release tags. `93d4099` `7e13942`
+
+---
+
 ## 🟥 [v0.7.0] — Modern Interface &nbsp;·&nbsp; `Update #011` &nbsp;·&nbsp; 2026-06-08
 
 > *A cinematic command center.*
