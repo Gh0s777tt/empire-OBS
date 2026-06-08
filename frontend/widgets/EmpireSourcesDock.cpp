@@ -11,9 +11,15 @@
 
 static const char *kSourceStyle =
 	"QPushButton { background:#1A1A1A; border:1px solid #2A2A2A; border-left:3px solid #2A2A2A;"
-	" border-radius:8px; padding:10px 14px; color:#777777; text-align:left; font-weight:500; }"
+	" border-radius:10px; padding:10px 14px; color:#777777; text-align:left; font-weight:500; }"
 	"QPushButton:hover { background:#232323; }"
 	"QPushButton:checked { color:#FFFFFF; border-left:3px solid #E50914; }";
+
+/* Visibility marker: a filled eye-dot when shown, an empty ring when hidden. */
+static QString empire_src_label(bool visible, const QString &name)
+{
+	return (visible ? QStringLiteral("◉  ") : QStringLiteral("○  ")) + name;
+}
 
 EmpireSourcesDock::EmpireSourcesDock(QWidget *parent) : QFrame(parent)
 {
@@ -50,10 +56,11 @@ void EmpireSourcesDock::AddItemRow(obs_sceneitem_t *item)
 	if (!name)
 		return;
 	const QString qname = QString::fromUtf8(name);
+	const bool visible = obs_sceneitem_visible(item);
 
-	QPushButton *card = new QPushButton(qname, this);
+	QPushButton *card = new QPushButton(empire_src_label(visible, qname), this);
 	card->setCheckable(true);
-	card->setChecked(obs_sceneitem_visible(item));
+	card->setChecked(visible);
 	card->setCursor(Qt::PointingHandCursor);
 	card->setStyleSheet(kSourceStyle);
 
@@ -66,8 +73,10 @@ void EmpireSourcesDock::AddItemRow(obs_sceneitem_t *item)
 			const bool vis = !obs_sceneitem_visible(it);
 			obs_sceneitem_set_visible(it, vis);
 			card->setChecked(vis);
+			card->setText(empire_src_label(vis, qname));
 		} else {
 			card->setChecked(false);
+			card->setText(empire_src_label(false, qname));
 		}
 		obs_source_release(sceneSrc);
 	});

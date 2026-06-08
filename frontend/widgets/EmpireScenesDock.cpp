@@ -2,6 +2,11 @@
 
 #include <obs-frontend-api.h>
 
+#include <QInputDialog>
+#include <QLineEdit>
+#include <QMenu>
+#include <QMessageBox>
+#include <QMetaObject>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QVBoxLayout>
@@ -23,6 +28,20 @@ EmpireScenesDock::EmpireScenesDock(QWidget *parent) : QFrame(parent)
 {
 	QVBoxLayout *outer = new QVBoxLayout(this);
 	outer->setContentsMargins(0, 0, 0, 0);
+	outer->setSpacing(0);
+
+	QPushButton *addBtn = new QPushButton(QStringLiteral("+  Nowa scena"), this);
+	addBtn->setCursor(Qt::PointingHandCursor);
+	addBtn->setMinimumHeight(34);
+	addBtn->setStyleSheet("QPushButton { background:#1A1A1A; border:none; border-bottom:1px solid #2A2A2A;"
+			      " color:#B3B3B3; font-weight:600; }"
+			      "QPushButton:hover { background:#232323; color:#FFFFFF; }");
+	connect(addBtn, &QPushButton::clicked, this, []() {
+		QWidget *mw = static_cast<QWidget *>(obs_frontend_get_main_window());
+		if (mw)
+			QMetaObject::invokeMethod(mw, "on_actionAddScene_triggered", Qt::QueuedConnection);
+	});
+	outer->addWidget(addBtn);
 
 	QScrollArea *scroll = new QScrollArea(this);
 	scroll->setWidgetResizable(true);
@@ -81,6 +100,9 @@ void EmpireScenesDock::RebuildScenes()
 				obs_source_release(s);
 			}
 		});
+		card->setContextMenuPolicy(Qt::CustomContextMenu);
+		connect(card, &QWidget::customContextMenuRequested, this,
+			[this, qname, card](const QPoint &pos) { SceneCardMenu(qname, card->mapToGlobal(pos)); });
 		cardLayout->addWidget(card);
 	}
 	obs_frontend_source_list_free(&scenes);
@@ -103,6 +125,76 @@ void EmpireScenesDock::UpdateActive()
 		QPushButton *btn = qobject_cast<QPushButton *>(w);
 		if (btn)
 			btn->setChecked(btn->property("sceneName").toString() == curName);
+	}
+}
+
+void EmpireScenesDock::SceneCardMenu(const QString &sceneName, const QPoint &globalPos)
+{
+	QMenu menu(this);
+	QAction *renameAct = menu.addAction(QStringLiteral("Zmień nazwę"));
+	QAction *dupAct = menu.addAction(QStringLiteral("Duplikuj"));
+	menu.addSeparator();
+	QAction *removeAct = menu.addAction(QStringLiteral("Usuń scenę"));
+
+	QAction *chosen = menu.exec(globalPos);
+	if (!chosen)
+		return;
+
+	if (chosen == renameAct) {
+		bool ok = false;
+		QString nn = QInputDialog::getText(this, QStringLiteral("Zmień nazwę sceny"),
+						   QStringLiteral("Nowa nazwa:"), QLineEdit::Normal, sceneName, &ok)
+				     .trimmed();
+		if (!ok || nn.isEmpty() || nn == sceneName)
+			return;
+		obs_source_t *exist = obs_get_source_by_name(nn.toUtf8().constData());
+		if (exist) {
+			obs_source_release(exist);
+			QMessageBox::warning(this, QStringLiteral("Zmień nazwę"),
+					     QStringLiteral("Źródło o tej nazwie już istnieje."));
+			return;
+		}
+		obs_source_t *s = obs_get_source_by_name(sceneName.toUtf8().constData());
+		if (s) {
+			obs_source_set_name(s, nn.toUtf8().constData());
+			obs_source_release(s);
+		}
+	} else if (chosen == dupAct) {
+		obs_source_t *s = obs_get_source_by_name(sceneName.toUtf8().constData());
+		obs_scene_t *scene = s ? obs_scene_from_source(s) : nullptr;
+		if (scene) {
+			QString nn = sceneName + QStringLiteral(" (kopia)");
+			for (int n = 2;; n++) {
+				obs_source_t *e = obs_get_source_by_name(nn.toUtf8().constData());
+				if (!e)
+					break;
+				obs_source_release(e);
+				nn = sceneName + QStringLiteral(" (kopia %1)").arg(n);
+			}
+			obs_scene_t *dup = obs_scene_duplicate(scene, nn.toUtf8().constData(), OBS_SCENE_DUP_REFS);
+			if (dup)
+				obs_scene_release(dup);
+		}
+		if (s)
+			obs_source_release(s);
+	} else if (chosen == removeAct) {
+		struct obs_frontend_source_list scenes = {};
+		obs_frontend_get_scenes(&scenes);
+		const size_t count = scenes.sources.num;
+		obs_frontend_source_list_free(&scenes);
+		if (count <= 1) {
+			QMessageBox::warning(this, QStringLiteral("Usuń scenę"),
+					     QStringLiteral("Nie można usunąć ostatniej sceny."));
+			return;
+		}
+		if (QMessageBox::question(this, QStringLiteral("Usuń scenę"),
+					  QStringLiteral("Usunąć scenę \"%1\"?").arg(sceneName)) != QMessageBox::Yes)
+			return;
+		obs_source_t *s = obs_get_source_by_name(sceneName.toUtf8().constData());
+		if (s) {
+			obs_source_remove(s);
+			obs_source_release(s);
+		}
 	}
 }
 

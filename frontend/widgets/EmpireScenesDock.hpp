@@ -21,6 +21,7 @@ class EmpireScenesDock : public QFrame {
 
 	void RebuildScenes();
 	void UpdateActive();
+	void SceneCardMenu(const QString &sceneName, const QPoint &globalPos);
 
 	static void OBSFrontendEvent(enum obs_frontend_event event, void *ptr);
 

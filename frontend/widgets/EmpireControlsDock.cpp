@@ -9,24 +9,24 @@
 
 #include "moc_EmpireControlsDock.cpp"
 
-static const char *kBtnIdle = "QPushButton { background:#1C1C1C; border:1px solid #2A2A2A; border-radius:9px;"
+static const char *kBtnIdle = "QPushButton { background:#1A1A1A; border:1px solid #2A2A2A; border-radius:10px;"
 			      " padding:11px 12px; color:#CCCCCC; font-weight:600; }"
 			      "QPushButton:hover { background:#262626; color:#FFFFFF; border-color:#3A3A3A; }"
 			      "QPushButton:pressed { background:#161616; }";
 
-static const char *kBtnPrimary = "QPushButton { background:#E50914; border:1px solid #E50914; border-radius:9px;"
+static const char *kBtnPrimary = "QPushButton { background:#E50914; border:1px solid #E50914; border-radius:10px;"
 				 " padding:11px 12px; color:#FFFFFF; font-weight:700; }"
 				 "QPushButton:hover { background:#F6121D; }";
 
-static const char *kBtnStop = "QPushButton { background:#7A0509; border:1px solid #B20710; border-radius:9px;"
+static const char *kBtnStop = "QPushButton { background:#7A0509; border:1px solid #B20710; border-radius:10px;"
 			      " padding:11px 12px; color:#FFFFFF; font-weight:700; }"
 			      "QPushButton:hover { background:#B20710; }";
 
-static const char *kBtnActive = "QPushButton { background:#E50914; border:1px solid #E50914; border-radius:9px;"
+static const char *kBtnActive = "QPushButton { background:#E50914; border:1px solid #E50914; border-radius:10px;"
 				" padding:11px 12px; color:#FFFFFF; font-weight:700; }"
 				"QPushButton:hover { background:#B20710; }";
 
-static const char *kBtnExit = "QPushButton { background:#1C1C1C; border:1px solid #3A1416; border-radius:9px;"
+static const char *kBtnExit = "QPushButton { background:#1A1A1A; border:1px solid #3A1416; border-radius:10px;"
 			      " padding:11px 12px; color:#E06A6A; font-weight:600; }"
 			      "QPushButton:hover { background:#2A1416; color:#FF8080; }";
 
