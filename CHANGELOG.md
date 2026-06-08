@@ -15,6 +15,15 @@ The big remaining ideas are separate projects — see [ROADMAP.md](ROADMAP.md): 
 
 ---
 
+## 🟥 [v0.7.2] — Installer &nbsp;·&nbsp; `Update #013` &nbsp;·&nbsp; 2026-06-08
+
+> *One‑click setup.*
+
+### ✨ Added
+- **Windows installer** — an NSIS `…-installer.exe` with a Start‑menu shortcut and a proper uninstaller, published alongside the existing **portable ZIP**. Built by CI on every `v*` tag.
+
+---
+
 ## 🟥 [v0.7.1] — Cinematic Polish &nbsp;·&nbsp; `Update #012` &nbsp;·&nbsp; 2026-06-08
 
 > *The mockup, realized.*

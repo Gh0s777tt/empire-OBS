@@ -72,25 +72,46 @@ jobs:
           $ver = (git describe --always --tags)
           $out = "empire-obs-$ver-windows-x64.zip"
           Move-Item $zip.FullName "../$out" -Force
-          Pop-Location
           "package=$out" >> $env:GITHUB_OUTPUT
-          Write-Host "Packaged: $out"
+          Write-Host "Packaged ZIP: $out"
+
+          # Empire-OBS: also grab the NSIS .exe installer if CPack produced one
+          $exe = Get-ChildItem -Filter "*-windows-x64.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($exe) {
+            $exeOut = "empire-obs-$ver-windows-x64-installer.exe"
+            Move-Item $exe.FullName "../$exeOut" -Force
+            "installer=$exeOut" >> $env:GITHUB_OUTPUT
+            Write-Host "Packaged installer: $exeOut"
+          } else {
+            "installer=" >> $env:GITHUB_OUTPUT
+            Write-Warning "No NSIS installer produced (ZIP only)."
+          }
+          Pop-Location
 
       - name: ⬆️ Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: empire-obs-windows-x64
-          path: ${{ steps.pkg.outputs.package }}
+          path: |
+            ${{ steps.pkg.outputs.package }}
+            ${{ steps.pkg.outputs.installer }}
           if-no-files-found: error
 
       - name: 🚀 Publish GitHub Release (tags only)
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ steps.pkg.outputs.package }}
+          files: |
+            ${{ steps.pkg.outputs.package }}
+            ${{ steps.pkg.outputs.installer }}
           generate_release_notes: true
           body: |
             ## 🎬 Empire-OBS ${{ github.ref_name }}
 
             A cinematic, Netflix-styled fork of OBS Studio.
+
+            **Downloads** (Windows x64):
+            - 🧩 **Installer** — `*-installer.exe` (Start-menu shortcut + uninstaller)
+            - 📦 **Portable** — `*-windows-x64.zip` (unzip, then run `bin/64bit/obs64.exe`)
+
             See the [CHANGELOG](https://github.com/Gh0s777tt/empire-OBS/blob/empire/main/CHANGELOG.md) and [Wiki](https://github.com/Gh0s777tt/empire-OBS/wiki).
