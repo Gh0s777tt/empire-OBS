@@ -21,6 +21,13 @@ static void empire_style_mute(QPushButton *b, bool muted)
 		      : "background:#232323; color:#DDD; font-weight:600; border-radius:8px; padding:5px 12px;");
 }
 
+static QString empire_fmt_db(float db)
+{
+	if (db <= -96.0f)
+		return QStringLiteral("-∞ dB");
+	return QStringLiteral("%1 dB").arg(QString::number(db, 'f', 1));
+}
+
 EmpireLevelBar::EmpireLevelBar(QWidget *parent) : QWidget(parent)
 {
 	setFixedHeight(6);
@@ -147,9 +154,18 @@ void EmpireAudioDock::AddSourceRow(obs_source_t *src)
 	sl->setRange(0, 100);
 	sl->setValue((int)(obs_fader_get_deflection(fader) * 100.0f));
 	sl->setStyleSheet("QSlider { background:transparent; border:none; }");
-	connect(sl, &QSlider::valueChanged, this,
-		[fader](int v) { obs_fader_set_deflection(fader, (float)v / 100.0f); });
+
+	QLabel *db = new QLabel(empire_fmt_db(obs_fader_get_db(fader)), row);
+	db->setMinimumWidth(58);
+	db->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+	db->setStyleSheet("background:transparent; border:none; color:#9A9A9A; font-weight:600;");
+
+	connect(sl, &QSlider::valueChanged, this, [fader, db](int v) {
+		obs_fader_set_deflection(fader, (float)v / 100.0f);
+		db->setText(empire_fmt_db(obs_fader_get_db(fader)));
+	});
 	h->addWidget(sl, 1);
+	h->addWidget(db);
 
 	QPushButton *mute = new QPushButton(row);
 	empire_style_mute(mute, obs_source_muted(src));

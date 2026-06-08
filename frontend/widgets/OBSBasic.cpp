@@ -50,8 +50,10 @@
 #include <widgets/EmpireControlsDock.hpp>
 #include <widgets/EmpireMultistreamDock.hpp>
 #include <widgets/EmpirePerfDock.hpp>
+#include <widgets/EmpirePreviewBadges.hpp>
 #include <widgets/EmpireScenesDock.hpp>
 #include <widgets/EmpireSourcesDock.hpp>
+#include <widgets/EmpireTransitionsDock.hpp>
 #include <widgets/EmpireVerticalDock.hpp>
 #include <widgets/OBSProjector.hpp>
 
@@ -1399,6 +1401,9 @@ void OBSBasic::OnFirstLoad()
 	/* Empire-OBS: register the controls panel — the mockup's "Kontrolki" card (UI rebuild phase 5). */
 	obs_frontend_add_dock_by_id("empire_controls_dock", "Empire Controls", new EmpireControlsDock());
 
+	/* Empire-OBS: register the quick scene-transition picker. */
+	obs_frontend_add_dock_by_id("empire_transitions_dock", "Empire Transitions", new EmpireTransitionsDock());
+
 	/* Empire-OBS: seamless card headers — swap each Empire dock's title bar for a
 	 * styled label (no float/close chrome) so the docks read as the mockup's
 	 * cards; the Command bar gets no header at all. Re-applied every run because
@@ -1419,10 +1424,15 @@ void OBSBasic::OnFirstLoad()
 		styleHeader("empire_sources_dock", QStringLiteral("ŹRÓDŁA"));
 		styleHeader("empire_audio_dock", QStringLiteral("MIKSER AUDIO"));
 		styleHeader("empire_controls_dock", QStringLiteral("KONTROLKI"));
+		styleHeader("empire_transitions_dock", QStringLiteral("PRZEJŚCIA"));
 		styleHeader("empire_perf_dock", QStringLiteral("WYDAJNOŚĆ"));
 		styleHeader("empire_multistream_dock", QStringLiteral("MULTISTREAM"));
 		styleHeader("empire_vertical_dock", QStringLiteral("VERTICAL 9:16"));
 	}
+
+	/* Empire-OBS: experimental status badges drawn over the program preview. */
+	if (ui->preview)
+		new EmpirePreviewBadges(ui->preview, this);
 
 	/* Empire-OBS: one-time welcome on the very first launch. */
 	{

@@ -2,6 +2,10 @@
 
 #include <obs-frontend-api.h>
 
+#include <QInputDialog>
+#include <QLineEdit>
+#include <QMenu>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QVBoxLayout>
@@ -25,6 +29,17 @@ EmpireSourcesDock::EmpireSourcesDock(QWidget *parent) : QFrame(parent)
 {
 	QVBoxLayout *outer = new QVBoxLayout(this);
 	outer->setContentsMargins(0, 0, 0, 0);
+	outer->setSpacing(0);
+
+	QPushButton *addBtn = new QPushButton(QStringLiteral("+  Dodaj źródło"), this);
+	addBtn->setCursor(Qt::PointingHandCursor);
+	addBtn->setMinimumHeight(34);
+	addBtn->setStyleSheet("QPushButton { background:#1A1A1A; border:none; border-bottom:1px solid #2A2A2A;"
+			      " color:#B3B3B3; font-weight:600; }"
+			      "QPushButton:hover { background:#232323; color:#FFFFFF; }");
+	connect(addBtn, &QPushButton::clicked, this,
+		[this, addBtn]() { ShowAddMenu(addBtn->mapToGlobal(QPoint(0, addBtn->height()))); });
+	outer->addWidget(addBtn);
 
 	QScrollArea *scroll = new QScrollArea(this);
 	scroll->setWidgetResizable(true);
@@ -81,6 +96,10 @@ void EmpireSourcesDock::AddItemRow(obs_sceneitem_t *item)
 		obs_source_release(sceneSrc);
 	});
 
+	card->setContextMenuPolicy(Qt::CustomContextMenu);
+	connect(card, &QWidget::customContextMenuRequested, this,
+		[this, qname, card](const QPoint &pos) { SourceCardMenu(qname, card->mapToGlobal(pos)); });
+
 	rowLayout->addWidget(card);
 }
 
@@ -110,6 +129,98 @@ void EmpireSourcesDock::Rebuild()
 	obs_source_release(sceneSrc);
 
 	rowLayout->addStretch();
+}
+
+void EmpireSourcesDock::ShowAddMenu(const QPoint &globalPos)
+{
+	QMenu menu(this);
+	static const char *ids[] = {"dshow_input",     "wasapi_input_capture", "wasapi_output_capture",
+				    "monitor_capture", "window_capture",       "game_capture",
+				    "image_source",    "color_source",         "text_gdiplus",
+				    "ffmpeg_source",   "browser_source"};
+	for (const char *id : ids) {
+		const char *dn = obs_source_get_display_name(id);
+		if (!dn)
+			continue;
+		const QString sid = QString::fromUtf8(id);
+		menu.addAction(QString::fromUtf8(dn), this,
+			       [this, sid]() { AddSourceOfType(sid.toUtf8().constData()); });
+	}
+	if (!menu.isEmpty())
+		menu.exec(globalPos);
+}
+
+void EmpireSourcesDock::AddSourceOfType(const char *id)
+{
+	const char *dn = obs_source_get_display_name(id);
+	const QString base = dn ? QString::fromUtf8(dn) : QString::fromUtf8(id);
+	QString defName = base;
+	for (int n = 2;; n++) {
+		obs_source_t *e = obs_get_source_by_name(defName.toUtf8().constData());
+		if (!e)
+			break;
+		obs_source_release(e);
+		defName = QStringLiteral("%1 %2").arg(base).arg(n);
+	}
+
+	bool ok = false;
+	const QString name = QInputDialog::getText(this, QStringLiteral("Dodaj źródło"),
+						   QStringLiteral("Nazwa źródła:"), QLineEdit::Normal, defName, &ok)
+				     .trimmed();
+	if (!ok || name.isEmpty())
+		return;
+
+	obs_source_t *existing = obs_get_source_by_name(name.toUtf8().constData());
+	if (existing) {
+		obs_source_release(existing);
+		QMessageBox::warning(this, QStringLiteral("Dodaj źródło"),
+				     QStringLiteral("Źródło o tej nazwie już istnieje."));
+		return;
+	}
+
+	obs_source_t *sceneSrc = obs_frontend_get_current_scene();
+	obs_scene_t *scene = obs_scene_from_source(sceneSrc);
+	if (scene) {
+		obs_source_t *source = obs_source_create(id, name.toUtf8().constData(), nullptr, nullptr);
+		if (source) {
+			obs_scene_add(scene, source);
+			obs_frontend_open_source_properties(source);
+			obs_source_release(source);
+		}
+	}
+	obs_source_release(sceneSrc);
+}
+
+void EmpireSourcesDock::SourceCardMenu(const QString &name, const QPoint &globalPos)
+{
+	QMenu menu(this);
+	QAction *propsAct = menu.addAction(QStringLiteral("Właściwości…"));
+	QAction *filtersAct = menu.addAction(QStringLiteral("Filtry…"));
+	menu.addSeparator();
+	QAction *removeAct = menu.addAction(QStringLiteral("Usuń źródło"));
+
+	QAction *chosen = menu.exec(globalPos);
+	if (!chosen)
+		return;
+
+	obs_source_t *sceneSrc = obs_frontend_get_current_scene();
+	obs_scene_t *scene = obs_scene_from_source(sceneSrc);
+	obs_sceneitem_t *it = scene ? obs_scene_find_source(scene, name.toUtf8().constData()) : nullptr;
+	obs_source_t *src = it ? obs_sceneitem_get_source(it) : nullptr;
+
+	if (src) {
+		if (chosen == propsAct) {
+			obs_frontend_open_source_properties(src);
+		} else if (chosen == filtersAct) {
+			obs_frontend_open_source_filters(src);
+		} else if (chosen == removeAct) {
+			if (QMessageBox::question(this, QStringLiteral("Usuń źródło"),
+						  QStringLiteral("Usunąć \"%1\" z bieżącej sceny?").arg(name)) ==
+			    QMessageBox::Yes)
+				obs_sceneitem_remove(it);
+		}
+	}
+	obs_source_release(sceneSrc);
 }
 
 void EmpireSourcesDock::OBSFrontendEvent(enum obs_frontend_event event, void *ptr)

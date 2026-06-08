@@ -24,10 +24,14 @@ target_sources(
     widgets/EmpireMultistreamDock.hpp
     widgets/EmpirePerfDock.cpp
     widgets/EmpirePerfDock.hpp
+    widgets/EmpirePreviewBadges.cpp
+    widgets/EmpirePreviewBadges.hpp
     widgets/EmpireScenesDock.cpp
     widgets/EmpireScenesDock.hpp
     widgets/EmpireSourcesDock.cpp
     widgets/EmpireSourcesDock.hpp
+    widgets/EmpireTransitionsDock.cpp
+    widgets/EmpireTransitionsDock.hpp
     widgets/EmpireVerticalDock.cpp
     widgets/EmpireVerticalDock.hpp
     widgets/OBSBasic.cpp

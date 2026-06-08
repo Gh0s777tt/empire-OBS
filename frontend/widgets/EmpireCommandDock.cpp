@@ -165,11 +165,18 @@ void EmpireCommandDock::Update()
 
 	const double cpu = os_cpu_usage_info_query(cpu_info);
 	const double fps = obs_get_active_fps();
+	struct obs_video_info ovi;
+	QString res;
+	if (obs_get_video_info(&ovi))
+		res = QString("&nbsp;&nbsp;·&nbsp;&nbsp;<b style='color:#FFFFFF;'>%1×%2</b>")
+			      .arg(ovi.output_width)
+			      .arg(ovi.output_height);
 	statsLabel->setTextFormat(Qt::RichText);
 	statsLabel->setText(
-		QString("CPU <b style='color:#FFFFFF;'>%1%</b>&nbsp;&nbsp;·&nbsp;&nbsp;FPS <b style='color:#FFFFFF;'>%2</b>")
+		QString("CPU <b style='color:#FFFFFF;'>%1%</b>&nbsp;&nbsp;·&nbsp;&nbsp;FPS <b style='color:#FFFFFF;'>%2</b>%3")
 			.arg(QString::number(cpu, 'f', 1))
-			.arg(QString::number(fps, 'f', 0)));
+			.arg(QString::number(fps, 'f', 0))
+			.arg(res));
 
 	const bool streaming = obs_frontend_streaming_active();
 	const bool recording = obs_frontend_recording_active();

@@ -42,9 +42,11 @@ jobs:
             frontend/widgets/EmpireCommandDock.cpp \
             frontend/widgets/EmpireControlsDock.cpp \
             frontend/widgets/EmpirePerfDock.cpp \
+            frontend/widgets/EmpirePreviewBadges.cpp \
             frontend/widgets/EmpireMultistreamDock.cpp \
             frontend/widgets/EmpireScenesDock.cpp \
             frontend/widgets/EmpireSourcesDock.cpp \
+            frontend/widgets/EmpireTransitionsDock.cpp \
             frontend/widgets/EmpireVerticalDock.cpp \
             2>&1 | tee cppcheck.txt
           echo "### 🔬 cppcheck — Empire sources" >> "$GITHUB_STEP_SUMMARY"

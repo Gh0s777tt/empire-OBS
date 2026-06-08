@@ -21,6 +21,9 @@ class EmpireSourcesDock : public QFrame {
 
 	void Rebuild();
 	void AddItemRow(obs_sceneitem_t *item);
+	void ShowAddMenu(const QPoint &globalPos);
+	void AddSourceOfType(const char *id);
+	void SourceCardMenu(const QString &name, const QPoint &globalPos);
 
 	static void OBSFrontendEvent(enum obs_frontend_event event, void *ptr);
 
