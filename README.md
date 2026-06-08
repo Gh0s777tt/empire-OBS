@@ -227,6 +227,12 @@ The repository is **public** (GPL‑2.0) and hardened:
 - 🔁 **Inherited upstream CI** (Push / Scheduled) is fork‑guarded, so release tags stay green
 - 🔑 Secret‑scanning push protection (where available on the plan)
 
+> [!NOTE]
+> **Windows may warn that the installer is "unrecognized", or Defender may flag it.** Empire‑OBS binaries are
+> **not yet code‑signed**, so SmartScreen / Defender can throw a *false positive* on the unsigned `.exe`. It is
+> **not malware** — it's this open build. Choose **More info → Run anyway**, restore any quarantined files, or use the
+> **portable ZIP**. Code signing (the real fix) is wired into CI and waiting on a certificate — see **[Wiki → Signing](wiki/Signing.md)**.
+
 Report vulnerabilities privately — see **[Wiki → Security](wiki/Security.md)**.
 
 ---

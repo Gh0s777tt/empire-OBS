@@ -88,6 +88,26 @@ jobs:
           }
           Pop-Location
 
+      - name: 🔏 Code sign installer (skips cleanly if no cert secret)
+        shell: pwsh
+        env:
+          CERT_B64: ${{ secrets.WINDOWS_CERT_PFX_BASE64 }}
+          CERT_PW: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+        run: |
+          $installer = "${{ steps.pkg.outputs.installer }}"
+          if (-not $env:CERT_B64) {
+            Write-Host "::notice::No WINDOWS_CERT_PFX_BASE64 secret set - shipping UNSIGNED. SmartScreen/Defender may flag it; see wiki/Signing.md to enable code signing."
+            exit 0
+          }
+          if (-not $installer -or -not (Test-Path $installer)) { Write-Host "No installer to sign."; exit 0 }
+          $pfx = "$env:RUNNER_TEMP\empire-cert.pfx"
+          [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:CERT_B64))
+          $signtool = (Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin\*\x64\signtool.exe" -ErrorAction SilentlyContinue | Sort-Object FullName | Select-Object -Last 1).FullName
+          if (-not $signtool) { Write-Error "signtool.exe not found on the runner."; exit 1 }
+          & $signtool sign /f $pfx /p $env:CERT_PW /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 $installer
+          Remove-Item $pfx -Force
+          Write-Host "Signed installer: $installer"
+
       - name: ⬆️ Upload build artifact
         uses: actions/upload-artifact@v4
         with:
@@ -113,5 +133,7 @@ jobs:
             **Downloads** (Windows x64):
             - 🧩 **Installer** — `*-installer.exe` (Start-menu shortcut + uninstaller)
             - 📦 **Portable** — `*-windows-x64.zip` (unzip, then run `bin/64bit/obs64.exe`)
+
+            > ⚠️ The build is **not code-signed yet**, so Windows SmartScreen / Defender may show a *false positive* — it is not malware. Choose **More info → Run anyway** or use the portable ZIP. See the [Signing](https://github.com/Gh0s777tt/empire-OBS/blob/empire/main/wiki/Signing.md) notes.
 
             See the [CHANGELOG](https://github.com/Gh0s777tt/empire-OBS/blob/empire/main/CHANGELOG.md) and [Wiki](https://github.com/Gh0s777tt/empire-OBS/wiki).

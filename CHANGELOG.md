@@ -15,6 +15,18 @@ The big remaining ideas are separate projects — see [ROADMAP.md](ROADMAP.md): 
 
 ---
 
+## 🟥 [v0.7.3] — Self‑contained Setup &nbsp;·&nbsp; `Update #014` &nbsp;·&nbsp; 2026-06-08
+
+> *Installs anywhere; signing‑ready.*
+
+### 🛠️ Fixed
+- **Bundled the MSVC runtime** (`vcruntime140` / `msvcp140` / …) next to `obs64.exe`, so a clean machine without Visual Studio or the VC++ Redistributable no longer hits *"failed to load module"*. Both the installer and the portable ZIP are now self‑contained.
+
+### ✨ Added
+- **Code‑signing pipeline** in CI (activates once a certificate secret is set) and a **[Signing guide](wiki/Signing.md)** — how to get a free/cheap OSS certificate and stop the SmartScreen / Defender false‑positive on the unsigned installer.
+
+---
+
 ## 🟥 [v0.7.2] — Installer &nbsp;·&nbsp; `Update #013` &nbsp;·&nbsp; 2026-06-08
 
 > *One‑click setup.*
