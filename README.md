@@ -75,6 +75,12 @@
 
 *Command bar (with the one‑click **9:16** toggle) · **status badges over the preview** · seamless **Scenes · Sources · Audio · Controls** cards · the right **navigation rail**.*
 
+<br/>
+
+![Command bar &amp; preview badge](.github/screenshots/empire-bar.png)
+
+*The cinematic Command bar — brand · **9:16** toggle · live **CPU / FPS / resolution** · **Go Live** — with the **LIVE / OFFLINE badge** drawn right over the preview.*
+
 </div>
 
 > 📸 More shots — the Vertical 9:16 studio, live VU meters and the accent themes — live in the **[Wiki → Features](wiki/Features.md)**.
