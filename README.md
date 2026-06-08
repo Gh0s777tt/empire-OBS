@@ -10,7 +10,7 @@
 
 <br/>
 
-![version](https://img.shields.io/badge/version-0.3.0-E50914?style=for-the-badge&labelColor=141414)
+![version](https://img.shields.io/badge/version-0.7.1-E50914?style=for-the-badge&labelColor=141414)
 ![build](https://img.shields.io/badge/build-passing-46D369?style=for-the-badge&labelColor=141414)
 ![license](https://img.shields.io/badge/license-GPL--2.0-E50914?style=for-the-badge&labelColor=141414)
 ![platform](https://img.shields.io/badge/Windows-x64-E50914?style=for-the-badge&logo=windows&logoColor=white&labelColor=141414)
@@ -26,13 +26,15 @@
 
 > [!NOTE]
 > **Empire‑OBS** is a personal, modernized fork of [OBS Studio](https://github.com/obsproject/obs-studio) (GPL‑2.0).
-> It re‑skins the entire interface in a cinematic **Netflix palette** (`#141414` / `#E50914`), adds native
-> **performance** and **multistreaming** docks, ready‑made **scene templates**, and a **Smart Setup** assistant —
-> all building on the latest upstream OBS, compiled on the newest **Visual Studio 2026** toolchain.
+> It rebuilds the entire interface in a cinematic **Netflix palette** (`#141414` / `#E50914`) — a top **Command bar**,
+> seamless **Scenes · Sources · Audio · Controls** cards, a right **navigation rail**, **status badges over the preview**,
+> a full **Vertical 9:16** studio, **multistreaming**, live **performance** graphs, ready‑made **scene templates** and a
+> **Smart Setup** assistant — all on the latest upstream OBS, compiled on the newest **Visual Studio 2026** toolchain.
 
 ## 📑 Table of Contents
 
 - [✨ Features](#-features)
+- [🖼️ Screenshots](#️-screenshots)
 - [🖼️ Look &amp; feel](#️-look--feel)
 - [🏗️ Architecture](#️-architecture)
 - [🧱 Tech stack](#-tech-stack)
@@ -50,14 +52,32 @@
 
 | | Feature | Description | Status |
 |:--:|---|---|:--:|
-| 🎨 | **Netflix Cinematic Theme** | Full dark UI in `#141414` + `#E50914`, rounded corners, red LIVE state — set as the default theme | ✅ |
-| 📈 | **Empire Performance dock** | Live custom‑painted graphs: CPU · FPS · render time · missed frames · RAM, with peak (max) readout | ✅ |
-| 🎞️ | **Scene Templates** | Ready‑made scene collections — *Gaming*, *Just Chatting*, *Podcast* | ✅ |
-| 🧠 | **Smart Setup** | Detected‑hardware summary (CPU cores + encoders) inside the auto‑config wizard | ✅ |
-| 📡 | **Multistreaming** | Stream to **multiple RTMP destinations at once** (Twitch + YouTube + Kick + …) — native dock **and** Lua script, sharing the main encoders (no extra GPU/CPU) | ✅ |
+| 🎬 | **Cinematic UI rebuild** | A full Empire layout — top **Command bar**, a bottom row of **Scenes · Sources · Audio · Controls** cards, and a right **navigation rail** — over the bold **Empire Modern** theme (default), with seamless card headers | ✅ |
+| 🟥 | **Preview badges** | **LIVE / REC** · resolution · scene name drawn right over the program preview | ✅ |
+| 📐 | **Vertical 9:16** | A portrait canvas you can **preview · compose** (drag / scale / add sources) · **record · stream** — toggled in one click from the top bar | ✅ |
+| 🎚️ | **Empire Audio** | Per‑source faders with **live VU meters** + a **dB** readout + mute | ✅ |
+| 🎞️ | **Scenes &amp; Sources cards** | One‑click scene switch (**+ new / rename / duplicate / remove**) and source visibility (**+ add / properties / filters / remove**) | ✅ |
+| 🔀 | **Transitions panel** | Pick the active scene transition and its duration | ✅ |
+| 📡 | **Multistreaming** | Stream to **multiple RTMP destinations at once** (Twitch + YouTube + Kick + …), sharing the main encoders — no extra GPU/CPU | ✅ |
+| 📈 | **Performance dock** | Live graphs: CPU · FPS · render · dropped frames · bitrate, with a **stream‑health** banner | ✅ |
+| 🧠 | **Templates + Smart Setup** | Ready‑made scene collections + a detected‑hardware summary in the auto‑config wizard | ✅ |
 
 > 📡 **Multistream highlight:** one encode pass → many uploads. Manage up to **3 extra destinations** from a
 > dock with per‑target **LIVE / failed** status and a one‑click **Start all streams** button.
+
+---
+
+## 🖼️ Screenshots
+
+<div align="center">
+
+![Empire‑OBS — the cinematic layout](.github/screenshots/empire-layout.png)
+
+*Command bar (with the one‑click **9:16** toggle) · **status badges over the preview** · seamless **Scenes · Sources · Audio · Controls** cards · the right **navigation rail**.*
+
+</div>
+
+> 📸 More shots — the Vertical 9:16 studio, live VU meters and the accent themes — live in the **[Wiki → Features](wiki/Features.md)**.
 
 ---
 
@@ -85,7 +105,8 @@
 flowchart TD
     subgraph UI["🎨 frontend · Qt 6"]
         THEME["Netflix theme<br/>(Yami_Empire.ovt)"]
-        DOCKS["Empire docks<br/>Performance · Multistream"]
+        DOCKS["Empire docks<br/>Command · Scenes · Sources · Audio<br/>Controls · Transitions · Nav · Vertical 9:16<br/>Performance · Multistream"]
+        BADGES["Preview badges<br/>(gs draw‑callback)"]
     end
     subgraph PLUGINS["🧩 plugins · 40 modules"]
         OUT["obs-outputs · rtmp"]
@@ -139,12 +160,12 @@ pie showData
 
 | Area | Progress |
 |---|---|
-| 🎨 Theme &amp; UI | `████████░░` 80% |
+| 🎨 Theme &amp; UI | `██████████` 98% |
 | 📡 Multistreaming | `█████████░` 90% |
-| 🛠️ Creator tools | `██████░░░░` 60% |
+| 🛠️ Creator tools | `████████░░` 85% |
 | 🧠 AI &amp; automation | `█░░░░░░░░░` 10% |
 | 🔌 IoT &amp; devices | `░░░░░░░░░░` 0% |
-| 📚 Docs &amp; CI | `███████░░░` 70% |
+| 📚 Docs &amp; CI | `█████████░` 90% |
 
 ---
 
@@ -152,7 +173,8 @@ pie showData
 
 See **[ROADMAP.md](ROADMAP.md)** for the full plan. Highlights:
 
-- 🟢 **Next:** Vertical 9:16 mode · AI background removal (ONNX) · scene‑template auto‑install · multistream v2 (per‑destination settings)
+- ✅ **Shipped:** cinematic UI rebuild · Vertical 9:16 studio · preview badges · right nav rail · multistream · scene templates
+- 🟢 **Next:** AI background removal (ONNX plugin) · per‑destination multistream tuning · more accent themes
 - 🟡 **Later:** IoT lights (Hue/Govee) · chat overlay · cloud recording · mobile companion
 - 🔴 **Re‑scoped:** FSR/DLSS/VR (#4) and Plugin Framework 2.0 (#9) — see roadmap for the feasible kernels
 
@@ -186,18 +208,18 @@ cmake --build --preset empire-windows-x64
 ## 📦 Changelog
 
 All notable changes are tracked in **[CHANGELOG.md](CHANGELOG.md)** with numbered updates.
-Latest: **`v0.3.0` — Multistream** *(Update #004)*.
+Latest: **`v0.7.1` — Cinematic Polish** *(Update #012)*.
 
 ---
 
 ## 🔒 Security
 
-This is a **private** repository hardened against unauthorized changes:
+The repository is **public** (GPL‑2.0) and hardened:
 
 - 🛡️ **Branch protection** on `empire/main` (no force‑push, no deletion, linear history)
 - 🤖 **Dependabot** vulnerability alerts + automated security fixes
-- 🔑 **Secret‑scanning push protection** (where available on the plan)
-- 🔐 Private visibility · forking restricted
+- 🔁 **Inherited upstream CI** (Push / Scheduled) is fork‑guarded, so release tags stay green
+- 🔑 Secret‑scanning push protection (where available on the plan)
 
 Report vulnerabilities privately — see **[Wiki → Security](wiki/Security.md)**.
 
